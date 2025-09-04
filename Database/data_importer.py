@@ -9,7 +9,7 @@ from psycopg2 import sql
 DB_CONFIG = {
     "dbname": "early_warning",
     "user": "postgres",
-    "password": "labda321",
+    "password": "password",
     "host": "localhost",
     "port": "5432"
 }
