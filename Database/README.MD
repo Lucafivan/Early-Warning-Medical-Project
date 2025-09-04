@@ -20,6 +20,7 @@ Langkah-langkah Setup Database
 # Langkah 0
 --- KONFIGURASI DATABASE di file data_importer.py
 Ganti nilai di bawah ini sesuai dengan konfigurasi database PostgreSQL Anda.
+    
     DB_CONFIG = {
     "dbname": "early_warning",
     "user": "postgres",
@@ -27,6 +28,7 @@ Ganti nilai di bawah ini sesuai dengan konfigurasi database PostgreSQL Anda.
     "host": "localhost",
     "port": "5432"
     }   
+
 
 
 Proses ini terdiri dari tiga tahap utama: membuat database kosong, membangun strukturnya, dan mengisinya dengan data.
