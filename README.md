@@ -4,7 +4,7 @@ This project build at PT Salam Pacific Indonesia Lines, as a team we do this pro
 ## Panduan Setup dan Penggunaan
 
 ### Setup Awal
-1. Backend (Flask): Lakukan setup seperti biasa. Masuk ke folder `backend` dan jalankan `conda create`, `conda activate`, dan `pip install -r requirements.txt`.
+1. Backend (Flask): Lakukan setup seperti biasa. Masuk ke folder `backend` dan jalankan `conda create`, `conda activate`, dan `pip install -r requirements.txt`. Apabila ingin menambahkan package baru, jangan lupa untuk memperbarui `requirements.txt` dengan `pip freeze | Out-File -FilePath requirements.txt -Encoding utf8`.
 
 2. Frontend (React & Vite): Masuk ke folder `frontend` dan jalankan `npm install` untuk menginstal semua dependensi React.
 
