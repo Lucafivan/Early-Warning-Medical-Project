@@ -1,4 +1,4 @@
-Proyek Early Warning System - Panduan Setup Database
+## Proyek Early Warning System - Panduan Setup Database
 
 Selamat datang di Proyek Early Warning System! Dokumen ini adalah panduan utama bagi tim Backend Developer untuk menyiapkan database PostgreSQL secara lokal.
 
@@ -17,8 +17,19 @@ Pastikan perangkat lunak berikut sudah terinstal di komputer Anda:
 
 Langkah-langkah Setup Database
 
+Langkah 0
+# --- KONFIGURASI DATABASE di file data_importer.py
+# Ganti nilai di bawah ini sesuai dengan konfigurasi database PostgreSQL Anda.
+DB_CONFIG = {
+    "dbname": "early_warning",
+    "user": "postgres",
+    "password": "password",
+    "host": "localhost",
+    "port": "5432"
+}
+
 Proses ini terdiri dari tiga tahap utama: membuat database kosong, membangun strukturnya, dan mengisinya dengan data.
-Tahap 1: Buat Database Kosong
+# Tahap 1: Buat Database Kosong
 
 Anda perlu membuat sebuah database kosong bernama early_warning.
 
@@ -32,7 +43,7 @@ Menggunakan pgAdmin4 (Direkomendasikan):
 
     Klik Save.
 
-Tahap 2: Bangun Struktur Tabel
+# Tahap 2: Bangun Struktur Tabel
 
 Setelah database kosong dibuat, kita perlu membuat semua tabel di dalamnya dengan menjalankan skrip SQL yang sudah disediakan.
 
@@ -48,7 +59,7 @@ Setelah database kosong dibuat, kita perlu membuat semua tabel di dalamnya denga
 
     Verifikasi: Setelah selesai, refresh daftar Tables di bawah early_warning > Schemas > public. Anda seharusnya melihat semua tabel proyek (employees, health_records, dll.) telah dibuat.
 
-Tahap 3: Isi Database dengan Data Awal
+# Tahap 3: Isi Database dengan Data Awal
 
 Sekarang kita akan menggunakan skrip Python untuk membaca file Excel dan memasukkan datanya ke dalam tabel yang baru saja dibuat.
 
