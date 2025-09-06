@@ -36,11 +36,15 @@ const BudgetTargetingPage: React.FC = () => {
 
       {/* Area bawah topbar: sidebar + konten */}
       <div className="flex flex-1 overflow-hidden">
+        {/* Page title */}
+        <div className="fixed top-16 left-16 z-0 pointer-events-none px-4 py-3">
+            <h1 className="text-lg font-semibold text-gray-700">Budget Targeting</h1>
+        </div>
         {/* Sidebar */}
         <aside
           onMouseEnter={() => setExpanded(true)}
           onMouseLeave={() => setExpanded(false)}
-          className={`transition-all duration-300 ease-in-out ${expanded ? "w-60" : "w-16"}
+          className={`relative z-10 transition-all duration-300 ease-in-out ${expanded ? "w-60" : "w-16"}
                       flex flex-col gap-4 bg-[#16332f] text-gray-100 p-4 overflow-hidden`}
         >
           <nav className="flex flex-col gap-2">

@@ -10,7 +10,7 @@ import BudgetTargetingPage from './pages/BudgetTargetingPage';
 function App() {
 
   return (
-    
+
     <Router>
       <Routes>
         <Route path='/' element={<RegisterPage/>}/>
