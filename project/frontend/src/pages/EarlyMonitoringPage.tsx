@@ -2,7 +2,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import spilLogo from "../assets/spil_logo.png";
 
-const DashboardPage: React.FC = () => {
+const EarlyMonitoringPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [expanded, setExpanded] = useState(false);
@@ -12,6 +12,7 @@ const DashboardPage: React.FC = () => {
         setExpanded(true);
     }
   }, [location.state]);
+
 
   return (
     <div className="fixed inset-0 flex flex-col bg-gray-100 text-gray-900">
@@ -46,7 +47,7 @@ const DashboardPage: React.FC = () => {
             <a
               href="#"
               onClick={(e) => { e.preventDefault(); navigate("/dashboard", { state: { keepSidebarOpen: true } }); }}
-              className={`flex items-center ${expanded ? "justify-start" : "justify-center"} gap-3 px-3 py-2 rounded-xl bg-[#3a9542] text-white`}
+              className={`flex items-center ${expanded ? "justify-start" : "justify-center"} gap-3 px-3 py-2 rounded-xl hover:bg-[#3a9542] text-white`}
             >
               <span className="text-base">★</span>
               <span className={expanded ? "inline" : "hidden"}>Dashboard</span>
@@ -55,7 +56,7 @@ const DashboardPage: React.FC = () => {
             <a
               href="#"
               onClick={(e) => { e.preventDefault(); navigate("/early-monitoring", { state: { keepSidebarOpen: true } }); }}
-              className={`flex items-center ${expanded ? "justify-start" : "justify-center"} gap-3 px-3 py-2 rounded-xl hover:bg-[#3a9542] text-white`}
+              className={`flex items-center ${expanded ? "justify-start" : "justify-center"} gap-3 px-3 py-2 rounded-xl bg-[#3a9542] text-white`}
             >
               <span className="text-base">★</span>
               <span className={expanded ? "inline" : "hidden"}>Early Monitoring</span>
@@ -105,4 +106,4 @@ const DashboardPage: React.FC = () => {
   );
 };
 
-export default DashboardPage;
+export default EarlyMonitoringPage;
