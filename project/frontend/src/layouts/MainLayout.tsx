@@ -1,4 +1,3 @@
-import React from 'react';
 import { Outlet } from 'react-router-dom'; 
 import Sidebar from '../components/frame/sidebar';
 
@@ -13,5 +12,6 @@ function MainLayout() {
     </div>
   );
 }
+
 
 export default MainLayout;
