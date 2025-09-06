@@ -4,6 +4,8 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import DashboardPage from './pages/DashboardPage'
+import EarlyWarningPage from './pages/EarlyWarningPage'
+import BudgetTargetingPage from './pages/BudgetTargetingPage'
 
 import NotfoundPage from './pages/NotfoundPage'
 
@@ -21,6 +23,8 @@ function App() {
          {/* page yang pake navbar */}
         <Route element={<MainLayout />}>
           <Route path='/dashboard' element={<DashboardPage />} />
+          <Route path='/earlywarning' element={<EarlyWarningPage/> } />
+          <Route path='budgettargeting' element={<BudgetTargetingPage/>}/>
         </Route>
 
         <Route path='*' element={<NotfoundPage/>}/>

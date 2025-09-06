@@ -66,7 +66,7 @@ const RegisterPage = () => {
               />
             </div>
 
-            {/* Register */}
+            {/* Register Button */}
             <button
               type="submit"
               className="w-full bg-green-600 text-white font-semibold py-2.5 rounded-lg hover:bg-[#327a35] transition"
