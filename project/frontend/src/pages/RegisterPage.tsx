@@ -1,90 +1,88 @@
-import React from 'react'
-import '../index.css'
-import Logo from '../assets/spil_logo.png'
+import { useNavigate } from "react-router-dom";
+import spilLogo from "../assets/spil_logo.png";
+import containerPicture from "../assets/container.png";
 
-
-const RegisterPage = () => {
+const RegisterPage: React.FC = () => {
+  const navigate = useNavigate();
 
   return (
-    <div className='flex w-full min-h-screen'>
+    // Fullscreen, abaikan padding #root dari App.css
+    <div className="fixed inset-0 flex bg-white">
+      {/* Kiri: panel gambar */}
+      <div className="hidden md:block w-[45%] h-full">
+        <img src={containerPicture} className="w-full h-full object-cover" />
+      </div>
 
-        <div className='w-1/2 bg-green-600'>
-           <h4> left </h4>
-        </div>
+      {/* Kanan: area form */}
+      <div className="flex-1 relative flex items-center justify-center">
+        {/* Logo kanan-atas */}
+        <img
+          src={spilLogo}
+          alt="SPIL Logo"
+          className="absolute top-6 right-6 h-10 object-contain"
+        />
 
-        <div className='w-full md:w-1/2 bg-gray-100 flex justify-center items-center p-8'>
-         <div className="absolute top-6 right-8">
-            <img src={Logo} alt="SPIL Logo" className="h-8" />
-        </div>
-            <div className='w-full max-w-md bg-white p-8 rounded-xl shadow-md'>
+        {/* Card Register */}
+        <div className="w-[92%] max-w-lg rounded-2xl bg-gray-100/70 shadow-sm border border-gray-200 p-6 sm:p-8">
+          <h2 className="text-2xl font-bold text-[#2b5b2f]">Register</h2>
 
-                 <h2 className="text-3xl font-bold mb-6 text-green-600">Register</h2>
-                <form>
-            {/* Username */}
-            <div className="mb-4">
-                <div className="flex justify-start">
-                <label htmlFor="username" className="block text-sm font-medium text-gray-600 mb-1">
-                    username
-                </label>
-            </div>
+          {/* full name */}
+          <label className="block mt-5 text-xs text-gray-600 text-left">username</label>
+          <input
+            type="text"
+            placeholder=""
+            className="mt-1 w-full h-10 rounded-md border border-gray-300 px-3 outline-none focus:ring-2 focus:ring-green-600"
+          />
 
-              
-              <input
-                type="text"
-                id="username"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-              />
-            </div>
+          {/* email */}
+          <label className="block mt-4 text-xs text-gray-600 text-left">email</label>
+          <input
+            type="email"
+            placeholder=""
+            className="mt-1 w-full h-10 rounded-md border border-gray-300 px-3 outline-none focus:ring-2 focus:ring-green-600"
+          />
 
-            {/* Email */}
-            <div className="mb-4">
-                <div className='flex justify-start'>
-                    <label htmlFor="email" className="block text-sm font-medium text-gray-600 mb-1">
-                    email
-                </label>
-            </div>
-              
-              <input
-                type="email"
-                id="email"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-              />
-            </div>
+          {/* password */}
+          <label className="block mt-4 text-xs text-gray-600 text-left">password</label>
+          <input
+            type="password"
+            placeholder=""
+            className="mt-1 w-full h-10 rounded-md border border-gray-300 px-3 outline-none focus:ring-2 focus:ring-green-600"
+          />
 
-            {/*Password */}
-            <div className="mb-6">
-                <div className='flex justify-start'>
-                    <label htmlFor="password" className="block text-sm font-medium text-gray-600 mb-1">
-                        password
-                    </label>
-                </div>
-              
-              <input
-                type="password"
-                id="password"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-              />
-            </div>
+          {/* confirm password */}
+          <label className="block mt-4 text-xs text-gray-600 text-left">confirm password</label>
+          <input
+            type="password"
+            placeholder=""
+            className="mt-1 w-full h-10 rounded-md border border-gray-300 px-3 outline-none focus:ring-2 focus:ring-green-600"
+          />
 
-            {/* Register Button */}
+          {/* Actions */}
+          <div className="mt-6">
             <button
-              type="submit"
-              className="w-full bg-green-600 text-white font-semibold py-2.5 rounded-lg hover:bg-[#327a35] transition"
+              type="button"
+              className="w-full h-10 p-0 flex items-center justify-center rounded-full bg-[#3a9542] text-white hover:brightness-95"
+              onClick={() => navigate("/login")}
             >
               Register
             </button>
-          </form>
+          </div>
 
-           <p className="text-center text-sm text-gray-500 mt-6">
-              Sudah punya akun?{' '}
-              <a href="/" className="text-blue-600 hover:underline font-medium">
+          <div className="mt-3 text-center text-xs italic text-gray-600">
+              Sudah punya akun?{" "}
+              <a
+                href="/login"
+                onClick={(e) => { e.preventDefault(); navigate("/login"); }}
+                className="text-blue-600 hover:underline italic"
+              >
                 Login
               </a>
-            </p>
             </div>
         </div>
+      </div>
     </div>
-  )
-}
+  );
+};
 
-export default RegisterPage
+export default RegisterPage;
