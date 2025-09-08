@@ -30,7 +30,7 @@ const LoginPage: React.FC = () => {
 
   const onSubmit: SubmitHandler<LoginFormInputs> = async (data) => {
     setIsSubmitting(true);
-    toast.loading('Mencoba untuk masuk...'); // Tampilkan notifikasi loading
+    toast.loading('Mencoba untuk masuk...');
 
     try {
       const response = await loginUser({
@@ -40,19 +40,19 @@ const LoginPage: React.FC = () => {
 
       toast.dismiss();
       toast.success('Login berhasil!');
-      
-      // Jika backend mengirim token, Anda bisa menyimpannya di sini
-      // contoh: localStorage.setItem('token', response.data.token);
+ 
+      // SAVE TOKEN -> Buat get data
+      localStorage.setItem('access_token', response.data.access_token);
       
       login(); // Ubah status di AuthContext
       navigate('/dashboard');
 
     } catch (error) {
-      toast.dismiss(); // Hapus notifikasi loading
+      toast.dismiss();
       toast.error('Login gagal. Periksa kembali email dan password Anda.');
       console.error('Error saat login:', error);
     } finally {
-      setIsSubmitting(false); // Selalu hentikan loading, baik sukses maupun gagal
+      setIsSubmitting(false);
     }
   };
 

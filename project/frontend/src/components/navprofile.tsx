@@ -1,9 +1,71 @@
-import React, { useState } from "react";
+// src/components/NavProfile.tsx
+
+import React, { useState, useEffect } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import MenuProfile from "./frame/menuprofile"
+import MenuProfile from "./frame/menuprofile";
+import axios from "axios";
+import { jwtDecode } from "jwt-decode"; // Import jwt-decode
+
+// Definisikan tipe data untuk user agar lebih aman
+interface User {
+  id: number;
+  username: string;
+  email: string;
+  role: string;
+}
+
+// Definisikan tipe untuk payload token yang sudah di-decode
+interface DecodedToken {
+  sub: string; // 'sub' biasanya berisi identifier user (email/username)
+  // tambahkan properti lain dari token jika ada
+}
 
 function NavProfile() {
   const [open, setOpen] = useState(false);
+  // State untuk menyimpan data user, awalnya null
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        // 1. Ambil token dari localStorage (pastikan Anda menyimpannya setelah login)
+        const token = localStorage.getItem("access_token");
+
+        if (!token) {
+          console.error("Token tidak ditemukan. User belum login.");
+          return;
+        }
+        
+        // 2. Decode token untuk mendapatkan email user (atau identifier lainnya)
+        const decodedToken = jwtDecode<DecodedToken>(token);
+        const userEmail = decodedToken.sub; // 'sub' adalah subject dari token, yaitu email user
+
+        // 3. Lakukan panggilan API untuk mendapatkan semua user
+        const response = await axios.get("http://localhost:5000/users", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        // 4. Cari user yang cocok berdasarkan email dari token
+        const allUsers: User[] = response.data;
+        const currentUser = allUsers.find(u => u.email === userEmail);
+
+        if (currentUser) {
+          // 5. Simpan data user yang ditemukan ke dalam state
+          setUser(currentUser);
+        } else {
+          console.error("User yang sedang login tidak ditemukan di daftar.");
+        }
+
+      } catch (error) {
+        console.error("Gagal mengambil data user:", error);
+        // Mungkin token sudah expired atau API error
+      }
+    };
+
+    fetchUserProfile();
+  }, []); // Array kosong berarti useEffect hanya berjalan sekali saat komponen dimuat
 
   return (
     <div className="relative">
@@ -18,8 +80,13 @@ function NavProfile() {
           className="w-9 h-9 rounded-full object-cover"
         />
         <div className="leading-tight">
-          <div className="font-semibold">SALAM PASIFIC</div>
-          <div className="text-xs text-gray-500">spilindonesia@gmail.com</div>
+          {/* 6. Tampilkan data dari state, beri fallback "Loading..." */}
+          <div className="font-semibold">
+            {user ? user.username : "Loading..."}
+          </div>
+          <div className="text-xs text-gray-500">
+            {user ? user.email : ""}
+          </div>
         </div>
         {open ? (
           <ChevronUp className="w-4 h-4 text-gray-500" />
