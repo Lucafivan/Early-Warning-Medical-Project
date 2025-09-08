@@ -1,73 +1,77 @@
+import { Link } from 'react-router-dom'; 
 import { useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { LayoutDashboard, Table, Target, Star, LogOut } from "lucide-react";
 
 function Sidebar() {
   const navigate = useNavigate();
-  const location = useLocation(); // Hook ini memberikan info URL saat ini
+  const location = useLocation();
   const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
     if ((location.state as { keepSidebarOpen?: boolean } | null)?.keepSidebarOpen) {
-      setExpanded(true);
+        setExpanded(true);
     }
   }, [location.state]);
-
-  // Fungsi untuk mempermudah, mengecek apakah path sedang aktif
-  const isActive = (path: string) => location.pathname === path;
 
   return (
     <aside
       onMouseEnter={() => setExpanded(true)}
       onMouseLeave={() => setExpanded(false)}
       className={`transition-all duration-300 ease-in-out ${expanded ? "w-60" : "w-16"}
-                  flex flex-col gap-4 bg-[#16332f] text-gray-100 p-4 overflow-hidden`}
+                 flex flex-col gap-4 bg-[#16332f] text-gray-100 p-4 overflow-hidden h-screen`}
     >
-      <nav className="flex flex-col gap-2">
-        {/* --- Link Dashboard --- */}
-        <a
-          href="#"
-          onClick={(e) => { e.preventDefault(); navigate("/dashboard", { state: { keepSidebarOpen: true } }); }}
-          className={`flex items-center ${expanded ? "justify-start" : "justify-center"} 
-                      gap-3 px-3 py-2 rounded-xl text-white
-                      ${isActive('/dashboard') ? 'bg-[#3a9542]' : 'hover:bg-[#3a9542]'}`}
+
+      <nav className="flex flex-col gap-2 flex-grow overflow-y-auto">
+        <Link
+          to="/dashboard"
+          state={{ keepSidebarOpen: true }}
+          className={`flex items-center ${expanded ? "justify-start" : "justify-center"} gap-3 px-3 py-2 rounded-xl bg-[#3a9542] text-white`}
         >
-          <span className="text-base">★</span>
+          <LayoutDashboard size={20} />
           <span className={expanded ? "inline" : "hidden"}>Dashboard</span>
-        </a>
+        </Link>
 
-        {/* --- Link Early Monitoring --- */}
-        <a
-          href="#"
-          onClick={(e) => { e.preventDefault(); navigate("/early-monitoring", { state: { keepSidebarOpen: true } }); }}
-          className={`flex items-center ${expanded ? "justify-start" : "justify-center"} 
-                      gap-3 px-3 py-2 rounded-xl text-white
-                      ${isActive('/early-monitoring') ? 'bg-[#3a9542]' : 'hover:bg-[#3a9542]'}`}
+        {/* ... item Link lainnya tetap sama ... */}
+        <Link
+          to="/early-monitoring"
+          state={{ keepSidebarOpen: true }}
+          className={`flex items-center ${expanded ? "justify-start" : "justify-center"} gap-3 px-3 py-2 rounded-xl hover:bg-[#3a9542] text-white`}
         >
-          <span className="text-base">★</span>
+          <Table size={20} />
           <span className={expanded ? "inline" : "hidden"}>Early Monitoring</span>
-        </a>
+        </Link>
 
-        {/* --- Link Budget Targeting --- */}
-        <a
-          href="#"
-          onClick={(e) => { e.preventDefault(); navigate("/budget-targeting", { state: { keepSidebarOpen: true } }); }}
-          className={`flex items-center ${expanded ? "justify-start" : "justify-center"} 
-                      gap-3 px-3 py-2 rounded-xl text-white
-                      ${isActive('/budget-targeting') ? 'bg-[#3a9542]' : 'hover:bg-[#3a9542]'}`}
+        <Link
+          to="/budget-targeting"
+          state={{ keepSidebarOpen: true }}
+          className={`flex items-center ${expanded ? "justify-start" : "justify-center"} gap-3 px-3 py-2 rounded-xl hover:bg-[#3a9542] text-white`}
         >
-          <span className="text-base">★</span>
+          <Target size={20} />
           <span className={expanded ? "inline" : "hidden"}>Budget Targeting</span>
-        </a>
-      </nav>
+        </Link>
+
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Link 
+            key={i}
+            to={`/nav-item-${i}`}
+            state={{ keepSidebarOpen: true }}
+            className={`flex items-center ${expanded ? "justify-start" : "justify-center"} gap-3 px-3 py-2 rounded-xl hover:bg-[#3a9542] text-white`}
+          >
+            <Star size={20} />
+            <span className={expanded ? "inline" : "hidden"}>Nav Item</span>
+          </Link>
+        ))}
 
       <button
         onClick={() => navigate("/login")}
-        className={`mt-auto flex items-center justify-center
-                    gap-3 rounded-xl px-4 py-2 font-semibold bg-red-500 text-white hover:brightness-95`}
+        className={`mt-auto flex items-center ${expanded ? "justify-start" : "justify-center"}
+                   gap-2 rounded-xl px-4 py-2 font-semibold bg-red-500 text-white hover:brightness-95 mb-24`}
       >
-        <span className="text-base">★</span>
+        <LogOut size={20} />
         <span className={expanded ? "inline" : "hidden"}>Logout</span>
       </button>
+      </nav>
     </aside>
   );
 }
