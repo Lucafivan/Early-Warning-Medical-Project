@@ -6,21 +6,10 @@ CREATE DATABASE early_warning;
 CREATE TABLE work_locations (
     id SERIAL PRIMARY KEY,
     location_name VARCHAR(150) NOT NULL UNIQUE,
-    city VARCHAR(100),          -- Nama kota untuk query API
-    latitude DECIMAL(9,6),
-    longitude DECIMAL(9,6)
+    address TEXT,
+    latitude DECIMAL(9, 6),
+    longitude DECIMAL(9, 6)
 );
-
-INSERT INTO work_locations (location_name, city, latitude, longitude) VALUES
-('Kantor Pusat', 'Surabaya', -7.2371678363250735, 112.73933699269045),
-('Perak Barat', 'Surabaya', -7.231449273619633, 112.72828546626496),
-('Kalianak', 'Surabaya', -7.230964164937335, 112.7058541276304),
-('Cabang Jakarta', 'Jakarta', -6.110445734514671, 106.8920855806901),
-('Cabang Balikpapan', 'Balikpapan', -1.2753420746274544, 116.8187722896864),
-('Cabang Sampit', 'Sampit', -2.5529751355733588, 112.94999966042496),
-('Cabang Banjarmasin', 'Banjarmasin', -3.321447748621868, 114.58010402393569);
-
-
 
 -- ==========================================
 -- TABEL MASTER POTENSI BAHAYA (HAZARDS)

@@ -54,13 +54,13 @@ Ini adalah langkah krusial yang menciptakan fitur (features) lingkungan untuk mo
 
     Konfigurasi API Key:
 
-        Buka file weather_importer.py.
+        Buka file history_weather_importer.py.
 
         Ganti nilai GANTI_DENGAN_API_KEY_ANDA dengan API Key dari WeatherAPI.com. Pastikan juga password database sudah benar.
 
     Jalankan Importer Cuaca:
 
-    python weather_importer.py
+    python history_weather_importer.py
 
     Hasil: Tabel weather dan air_quality akan terisi dengan data cuaca historis yang relevan dengan setiap kasus penyakit.
 

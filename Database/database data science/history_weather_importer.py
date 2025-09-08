@@ -9,13 +9,13 @@ from datetime import date
 # ==============================================================================
 
 # Dapatkan API Key Anda dari www.weatherapi.com
-API_KEY = os.environ.get('WEATHER_API_KEY', '14c57538c90d47e480622045250409')
+API_KEY = os.environ.get('WEATHER_API_KEY', '14c57538c90d47e480622045250409')# <- api key
 
 # Konfigurasi koneksi database
 DB_CONFIG = {
     'dbname': os.environ.get('DB_NAME', 'early_warning'),
     'user': os.environ.get('DB_USER', 'postgres'),
-    'password': os.environ.get('DB_PASSWORD', 'your_password'), # Ganti dengan password Anda
+    'password': os.environ.get('DB_PASSWORD', 'labda321'), # Ganti dengan password Anda
     'host': os.environ.get('DB_HOST', 'localhost'),
     'port': os.environ.get('DB_PORT', '5432')
 }
