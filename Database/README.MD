@@ -56,8 +56,6 @@ Ini adalah langkah krusial yang menciptakan fitur (features) lingkungan untuk mo
 
         Buka file weather_importer.py.
 
-        Ganti nilai GANTI_DENGAN_API_KEY_ANDA dengan API Key dari WeatherAPI.com. Pastikan juga password database sudah benar.
-
     Jalankan Importer Cuaca:
 
     python weather_importer.py
