@@ -66,7 +66,7 @@ function Sidebar() {
           </Link>
         ))}
 
-        {/* Tombol ini sekarang akan selalu terlihat di bawah */}
+        {/* Logout button */}
       <button
         onClick={() => navigate("/login")}
         className={`mt-auto flex items-center ${expanded ? "justify-start" : "justify-center"}
