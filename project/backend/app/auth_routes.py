@@ -33,17 +33,17 @@ def register():
 @auth_bp.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
-    username = data.get('username')
+    email = data.get('email')
     password = data.get('password')
 
-    if not username or not password:
-        return jsonify({"msg": "Username dan password dibutuhkan"}), 400
-    
-    user = User.query.filter_by(username=username).first()
+    if not email or not password:
+        return jsonify({"msg": "Email dan password dibutuhkan"}), 400
+
+    user = User.query.filter_by(email=email).first()
 
     if user and user.check_password(password):
-        access_token = create_access_token(identity=user.username)
-        refresh_token = create_refresh_token(identity=user.username)
+        access_token = create_access_token(identity=user.email)
+        refresh_token = create_refresh_token(identity=user.email)
         return jsonify(
             access_token=access_token, 
             refresh_token=refresh_token,
