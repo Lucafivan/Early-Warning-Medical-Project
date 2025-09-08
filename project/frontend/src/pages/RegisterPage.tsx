@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import toast from 'react-hot-toast';
 
+import { registerUser } from '../services/authService';
 import spilLogo from "../assets/spil_logo.png";
 import containerPicture from "../assets/container.png";
 import { Button } from '../components/ui/Button';
@@ -42,12 +43,14 @@ const RegisterPage: React.FC = () => {
 
     // Simulasi pengiriman data ke backend
     try {
-      // Ganti ini dengan panggilan API registrasi Anda yang sebenarnya nanti
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
+      await registerUser({
+        username: data.username,
+        email: data.email,
+        password: data.password,
+      });
       toast.dismiss();
-      toast.success('Registrasi berhasil! Silakan login.');
-      navigate('/login'); // Arahkan ke halaman login setelah berhasil
+      toast.success('Akun berhasil dibuat! Silakan login.');
+      navigate('/login');
     } catch (error) {
       toast.dismiss();
       toast.error('Registrasi gagal, silakan coba lagi.');

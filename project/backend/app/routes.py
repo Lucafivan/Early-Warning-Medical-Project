@@ -125,7 +125,7 @@ def get_weather():
             'temperature': weather.temperature,
             'humidity': weather.humidity,
             'wind_speed': weather.wind_speed,
-            'precipitation': weather.precipitation
+            'timestamp': weather.timestamp
         })
     return jsonify(output)
 
