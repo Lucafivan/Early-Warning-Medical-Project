@@ -24,31 +24,26 @@ function NavProfile() {
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
-        // 1. Ambil token dari localStorage (pastikan Anda menyimpannya setelah login)
         const token = localStorage.getItem("access_token");
 
         if (!token) {
           console.error("Token tidak ditemukan. User belum login.");
           return;
         }
-        
-        // 2. Decode token untuk mendapatkan email user (atau identifier lainnya)
+
         const decodedToken = jwtDecode<DecodedToken>(token);
         const userEmail = decodedToken.sub; // 'sub' adalah subject dari token, yaitu email user
 
-        // 3. Lakukan panggilan API untuk mendapatkan semua user
         const response = await axios.get("http://localhost:5000/users", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
 
-        // 4. Cari user yang cocok berdasarkan email dari token
         const allUsers: User[] = response.data;
         const currentUser = allUsers.find(u => u.email === userEmail);
 
         if (currentUser) {
-          // 5. Simpan data user yang ditemukan ke dalam state
           setUser(currentUser);
         } else {
           console.error("User yang sedang login tidak ditemukan di daftar.");

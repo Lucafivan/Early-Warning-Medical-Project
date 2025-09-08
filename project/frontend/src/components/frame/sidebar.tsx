@@ -80,7 +80,7 @@ function Sidebar() {
 
         <button
           onClick={() => navigate("/login")}
-          className={`mt-auto flex items-center justify-center gap-2 rounded-xl px-3 py-2 font-semibold bg-red-500 text-white hover:brightness-95 mb-24`}
+          className={`mt-auto flex items-center justify-center gap-2 rounded-xl px-3 py-2 font-semibold bg-red-600 text-white hover:brightness-95 mb-24`}
         >
           <LogOut size={20} />
           {expanded && <span>Logout</span>}
