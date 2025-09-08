@@ -6,16 +6,25 @@ import {
   ChevronRight,
 } from "lucide-react";
 
-// Bagian 'accounts' dan state 'selectedAccountId' sudah dihapus karena tidak diperlukan lagi.
+import {useAuth} from "../../contexts/AuthContext"
+import toast from "react-hot-toast";
 
 function MenuProfile() {
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    // Di sini Anda bisa menambahkan logika logout dari context jika sudah ada
-    // Contoh: const { logout } = useAuth(); logout();
-    // Untuk saat ini, hanya navigasi ke halaman login
-    navigate("/login");
+  const {logout} = useAuth();
+
+    const handleLogout = async () => {
+    try {
+
+      logout();
+      navigate("/login");
+      toast.dismiss();
+      toast.success('berhasil logout!');
+      
+    } catch (err) {
+      console.error("Logout gagal:", err);
+    }
   };
 
   return (
