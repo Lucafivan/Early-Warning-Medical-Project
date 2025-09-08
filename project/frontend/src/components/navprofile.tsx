@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import { useAuth } from "../contexts/AuthContext";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import MenuProfile from "./frame/menuprofile"
 
 function NavProfile() {
   const [open, setOpen] = useState(false);
+  const { userEmail } = useAuth();
 
   return (
     <div className="relative">
@@ -19,7 +21,7 @@ function NavProfile() {
         />
         <div className="leading-tight">
           <div className="font-semibold">SALAM PASIFIC</div>
-          <div className="text-xs text-gray-500">spilindonesia@gmail.com</div>
+          <div className="text-xs text-gray-500">{userEmail || "-"}</div>
         </div>
         {open ? (
           <ChevronUp className="w-4 h-4 text-gray-500" />
