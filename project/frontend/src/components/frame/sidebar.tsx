@@ -21,10 +21,7 @@ function Sidebar() {
       className={`transition-all duration-300 ease-in-out ${expanded ? "w-60" : "w-16"}
                  flex flex-col gap-4 bg-[#16332f] text-gray-100 p-4 overflow-hidden h-screen`}
     >
-      {/* UBAH BAGIAN INI: 
-        Tambahkan `flex-grow` agar elemen ini mengisi ruang yang tersedia, 
-        dan `overflow-y-auto` agar bisa scroll jika kontennya panjang.
-      */}
+
       <nav className="flex flex-col gap-2 flex-grow overflow-y-auto">
         <Link
           to="/dashboard"
@@ -66,7 +63,7 @@ function Sidebar() {
           </Link>
         ))}
 
-        {/* Tombol ini sekarang akan selalu terlihat di bawah */}
+        {/* Logout */}
       <button
         onClick={() => navigate("/login")}
         className={`mt-auto flex items-center ${expanded ? "justify-start" : "justify-center"}
@@ -76,8 +73,6 @@ function Sidebar() {
         <span className={expanded ? "inline" : "hidden"}>Logout</span>
       </button>
       </nav>
-
-      
     </aside>
   );
 }
