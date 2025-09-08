@@ -9,7 +9,7 @@ from datetime import date
 # ==============================================================================
 
 # Dapatkan API Key Anda dari www.weatherapi.com
-API_KEY = os.environ.get('WEATHER_API_KEY', 'GANTI_DENGAN_API_KEY_ANDA')
+API_KEY = os.environ.get('WEATHER_API_KEY', '14c57538c90d47e480622045250409')
 
 # Konfigurasi koneksi database
 DB_CONFIG = {

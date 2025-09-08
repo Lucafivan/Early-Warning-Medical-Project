@@ -73,7 +73,7 @@ Database Anda sekarang siap untuk dianalisis. Berikut adalah contoh-contoh query
 
 Query ini menciptakan "flat table" yang ideal untuk melatih model klasifikasi (misalnya, memprediksi nama penyakit berdasarkan kondisi). Setiap baris mewakili satu kasus penyakit dengan semua fitur yang relevan.
 
--- Mengambil semua fitur relevan untuk setiap record kesehatan
+        -- Mengambil semua fitur relevan untuk setiap record kesehatan
         SELECT
             hr.id AS record_id,
             hr.record_date,
@@ -111,7 +111,7 @@ Query 2: Dataset untuk Analisis Time Series
 
 * Query ini mengagregasi jumlah kasus penyakit tertentu per hari dan menggabungkannya dengan kondisi cuaca rata-rata di lokasi "panas" (misalnya, Kalianak).
 
--- Agregasi jumlah kasus penyakit pernapasan harian di Kalianak beserta data cuaca
+        -- Agregasi jumlah kasus penyakit pernapasan harian di Kalianak beserta data cuaca
         SELECT
             hr.record_date AS tanggal,
             COUNT(hr.id) AS jumlah_kasus_pernapasan,
