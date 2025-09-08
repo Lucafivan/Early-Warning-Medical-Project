@@ -10,7 +10,7 @@ def create_app():
     app = Flask(__name__)
 
     # Konfigurasi koneksi ke PostgreSQL
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:password@localhost:5432/early_warning'  # Ganti password sesuai kebutuhan
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:alfanmahdi20@localhost:5432/early_warning'  # Ganti password sesuai kebutuhan
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     # Inisialisasi SQLAlchemy dan Migrate
