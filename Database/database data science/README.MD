@@ -1,8 +1,8 @@
 # Proyek Early Warning System: Panduan Database untuk Analisis & Modelling
 
+
 Tujuan utama dari pipeline data ini adalah untuk menciptakan sebuah dataset yang kaya dan terstruktur dengan menggabungkan tiga sumber informasi utama: Data Karyawan, Riwayat Kesehatan, dan Data Lingkungan Historis.
 
-[Gambar alur data dari sumber ke database terpusat]
 * Tahap 1: Setup Database PostgreSQL
 
 Bagian ini menjelaskan cara membuat database lokal yang identik dengan lingkungan produksi.
@@ -17,36 +17,31 @@ Bagian ini menjelaskan cara membuat database lokal yang identik dengan lingkunga
 
         Klik Save.
 
-    Konfigurasi Koneksi:
-
-        Buka file app.py.
-
-        Ganti nilai 'your_password' dengan password PostgreSQL Anda.
-
-        # app.py
-        DB_PASSWORD = os.environ.get('DB_PASSWORD', 'your_password') # <-- EDIT BARIS INI
-
 * Tahap 2: Membangun dan Mengisi Database
 
-Proses ini menggunakan Flask-Migrate untuk membangun struktur dan skrip Python untuk mengisi data.
+Proses ini menggunakan skrip SQL manual untuk membangun struktur dan skrip Python untuk mengisi data.
 
-    Atur Variabel FLASK_APP (di terminal):
+    Bangun Struktur Tabel:
 
-        macOS/Linux: export FLASK_APP=app.py
+        Buka Query Tool untuk database early_warning yang baru saja Anda buat.
 
-        Windows: set FLASK_APP=app.py
+        Salin seluruh isi dari file final_schema.sql dan tempelkan ke dalam Query Tool.
 
-    Bangun Struktur Tabel (Migrasi):
+        Klik tombol Execute/Run (ikon petir).
 
-    flask db upgrade
-
-    Hasil: Semua tabel akan dibuat secara otomatis di dalam database early_warning.
+        Hasil: Semua tabel akan dibuat secara otomatis di dalam database early_warning.
 
     Isi Data Awal (Seeding):
 
-    python data_importer.py
+        Pastikan virtual environment (venv) Anda aktif.
 
-    Hasil: Tabel employees, health_records, diseases, dll., akan terisi dengan data dari file Excel.
+        Buka file data_importer.py dan pastikan konfigurasi DB_CONFIG (terutama password) sudah benar.
+
+        Jalankan skrip dari terminal:
+
+        python data_importer.py
+
+        Hasil: Tabel employees, health_records, diseases, dll., akan terisi dengan data dari file Excel.
 
 * Tahap 3: Memperkaya Data dengan Faktor Lingkungan
 
@@ -54,19 +49,19 @@ Ini adalah langkah krusial yang menciptakan fitur (features) lingkungan untuk mo
 
     Konfigurasi API Key:
 
-        Buka file history_weather_importer.py.
+        Dapatkan API Key gratis dari www.weatherapi.com.
+
+        Buka file history_weather_importer.py, masukkan API Key Anda, dan pastikan konfigurasi database sudah benar.
 
     Jalankan Importer Cuaca:
 
     python history_weather_importer.py
 
-    Hasil: Tabel weather dan air_quality akan terisi dengan data cuaca historis yang relevan dengan setiap kasus penyakit.
+        Hasil: Tabel weather dan air_quality akan terisi dengan data cuaca historis yang relevan dengan setiap kasus penyakit.
 
 * Tahap 4: Ekstraksi Data untuk Modelling
 
-Database Anda sekarang siap untuk dianalisis. Berikut adalah contoh-contoh query SQL yang dirancang untuk mengekstrak dataset yang siap digunakan untuk berbagai jenis model.
-
-# Jalankan query ini di Query Tool pgAdmin. Anda bisa mengekspor hasilnya ke CSV langsung dari pgAdmin.
+Database Anda sekarang siap untuk dianalisis. Jalankan query SQL di bawah ini di Query Tool pgAdmin. Anda bisa mengekspor hasilnya ke CSV langsung dari pgAdmin.
 * Query 1: Dataset untuk Model Klasifikasi (Fitur Lengkap per Kasus)
 
 Query ini menciptakan "flat table" yang ideal untuk melatih model klasifikasi (misalnya, memprediksi nama penyakit berdasarkan kondisi). Setiap baris mewakili satu kasus penyakit dengan semua fitur yang relevan.
@@ -96,8 +91,8 @@ Query ini menciptakan "flat table" yang ideal untuk melatih model klasifikasi (m
         JOIN diseases d ON hr.disease_id = d.id
         JOIN employee_assignments ea ON hr.employee_id = ea.employee_id
         JOIN work_locations wl ON ea.work_location_id = wl.id
-        LEFT JOIN weather w ON wl.id = w.work_location_id AND hr.record_date = DATE(w.timestamp)
-        LEFT JOIN air_quality aq ON wl.id = aq.work_location_id AND hr.record_date = DATE(aq.timestamp)
+        LEFT JOIN weather w ON wl.id = w.work_location_id AND hr.record_date = w.timestamp
+        LEFT JOIN air_quality aq ON wl.id = aq.work_location_id AND hr.record_date = aq.timestamp
         WHERE
             -- Memastikan data lingkungan tersedia untuk training set yang berkualitas
             w.temperature IS NOT NULL AND aq.pm25 IS NOT NULL
@@ -105,9 +100,9 @@ Query ini menciptakan "flat table" yang ideal untuk melatih model klasifikasi (m
             hr.record_date;
 
 Penggunaan: Ekspor hasil query ini ke CSV. Ini adalah dataset utama Anda untuk melatih model seperti Random Forest, XGBoost, atau Logistic Regression.
-Query 2: Dataset untuk Analisis Time Series
+* Query 2: Dataset untuk Analisis Time Series
 
-* Query ini mengagregasi jumlah kasus penyakit tertentu per hari dan menggabungkannya dengan kondisi cuaca rata-rata di lokasi "panas" (misalnya, Kalianak).
+Query ini mengagregasi jumlah kasus penyakit tertentu per hari dan menggabungkannya dengan kondisi cuaca rata-rata di lokasi "panas" (misalnya, Kalianak).
 
         -- Agregasi jumlah kasus penyakit pernapasan harian di Kalianak beserta data cuaca
         SELECT
@@ -120,8 +115,8 @@ Query 2: Dataset untuk Analisis Time Series
         JOIN diseases d ON hr.disease_id = d.id
         JOIN employee_assignments ea ON hr.employee_id = ea.employee_id
         JOIN work_locations wl ON ea.work_location_id = wl.id
-        LEFT JOIN weather w ON wl.id = w.work_location_id AND hr.record_date = DATE(w.timestamp)
-        LEFT JOIN air_quality aq ON wl.id = aq.work_location_id AND hr.record_date = DATE(aq.timestamp)
+        LEFT JOIN weather w ON wl.id = w.work_location_id AND hr.record_date = w.timestamp
+        LEFT JOIN air_quality aq ON wl.id = aq.work_location_id AND hr.record_date = aq.timestamp
         WHERE
             wl.location_name = 'Kalianak'
             AND (d.disease_name ILIKE '%PNEUMONIA%' OR d.disease_name ILIKE '%RESPIRATORY%')
@@ -147,7 +142,7 @@ Query ini mengidentifikasi kombinasi Lokasi dan Posisi Pekerjaan yang memiliki j
             health_records hr
         JOIN employee_assignments ea ON hr.employee_id = ea.employee_id
         JOIN work_locations wl ON ea.work_location_id = wl.id
-        LEFT JOIN air_quality aq ON wl.id = aq.work_location_id AND hr.record_date = DATE(aq.timestamp)
+        LEFT JOIN air_quality aq ON wl.id = aq.work_location_id AND hr.record_date = aq.timestamp
         WHERE aq.pm25 IS NOT NULL
         GROUP BY
             wl.location_name,

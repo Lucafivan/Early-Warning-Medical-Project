@@ -30,7 +30,7 @@ Ikuti langkah-langkah ini untuk menyiapkan lingkungan di mesin lokal Anda.
 
         Buka Query Tool untuk database early_warning.
 
-        Salin seluruh isi dari file final_schema.sql dan jalankan. Ini akan membuat semua tabel, termasuk tabel risk_predictions yang penting untuk backend.
+        Salin seluruh isi dari file scheme.sql dan jalankan. Ini akan membuat semua tabel, termasuk tabel risk_predictions yang penting untuk backend.
 
     Isi Data Master (Penting): Skrip monitor memerlukan daftar lokasi kerja. Jalankan skrip data_importer.py satu kali untuk mengisi data master seperti work_locations dan employees.
 
