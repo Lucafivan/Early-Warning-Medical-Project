@@ -16,8 +16,8 @@ DB_CONFIG = {
 
 # --- NAMA FILE DATA ---
 # Pastikan file Excel ini berada di folder yang sama dengan skrip ini.
-EMPLOYEE_DATA_FILE = '/Users/farhanlado/Documents/kuliah/semester 7/Proyek Early Warning/Alias Karyawan.xlsx'
-MEDICAL_DATA_FILE = '/Users/farhanlado/Documents/kuliah/semester 7/Proyek Early Warning/Dummy Medical Data.xlsx'
+EMPLOYEE_DATA_FILE = 'Early-Warning-Medical-Project/Data/Alias Karyawan.xlsx'
+MEDICAL_DATA_FILE = 'Early-Warning-Medical-Project/Data/Dummy Medical Data.xlsx'
 
 
 def get_or_create_id(cursor, table, column, value):
