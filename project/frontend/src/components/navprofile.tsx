@@ -1,12 +1,9 @@
-// src/components/NavProfile.tsx
-
 import React, { useState, useEffect } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import MenuProfile from "./frame/menuprofile";
 import axios from "axios";
-import { jwtDecode } from "jwt-decode"; // Import jwt-decode
+import { jwtDecode } from "jwt-decode"; 
 
-// Definisikan tipe data untuk user agar lebih aman
 interface User {
   id: number;
   username: string;
@@ -14,7 +11,6 @@ interface User {
   role: string;
 }
 
-// Definisikan tipe untuk payload token yang sudah di-decode
 interface DecodedToken {
   sub: string; // 'sub' biasanya berisi identifier user (email/username)
   // tambahkan properti lain dari token jika ada
@@ -22,7 +18,7 @@ interface DecodedToken {
 
 function NavProfile() {
   const [open, setOpen] = useState(false);
-  // State untuk menyimpan data user, awalnya null
+ 
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
