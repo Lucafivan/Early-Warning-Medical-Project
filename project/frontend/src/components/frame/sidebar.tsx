@@ -63,7 +63,6 @@ function Sidebar() {
           </Link>
         ))}
 
-        {/* Logout */}
       <button
         onClick={() => navigate("/login")}
         className={`mt-auto flex items-center ${expanded ? "justify-start" : "justify-center"}
