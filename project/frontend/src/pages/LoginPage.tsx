@@ -20,7 +20,7 @@ const loginSchema = z.object({
 type LoginFormInputs = z.infer<typeof loginSchema>;
 
 const LoginPage: React.FC = () => {
-  const { login } = useAuth();
+  const { login, setUserEmail } = useAuth();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -33,7 +33,7 @@ const LoginPage: React.FC = () => {
     toast.loading('Mencoba untuk masuk...'); // Tampilkan notifikasi loading
 
     try {
-      const response = await loginUser({
+      await loginUser({
         email: data.email,
         password: data.password,
       });
@@ -44,8 +44,9 @@ const LoginPage: React.FC = () => {
       // Jika backend mengirim token, Anda bisa menyimpannya di sini
       // contoh: localStorage.setItem('token', response.data.token);
       
-      login(); // Ubah status di AuthContext
-      navigate('/dashboard');
+  login(); // Ubah status di AuthContext
+  setUserEmail(data.email); // Simpan email user ke context
+  navigate('/dashboard');
 
     } catch (error) {
       toast.dismiss(); // Hapus notifikasi loading
