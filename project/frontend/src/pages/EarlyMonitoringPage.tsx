@@ -23,6 +23,10 @@ const EarlyMonitoringPage: React.FC = () => {
 
       {/* Area bawah topbar: sidebar + konten */}
       <div className="flex flex-1 overflow-hidden">
+        {/* Page title */}
+        <div className="fixed top-16 left-16 z-0 pointer-events-none px-4 py-3">
+            <h1 className="text-lg font-semibold text-gray-700">Early Monitoring</h1>
+        </div>
         {/* Sidebar */}
         <Sidebar />
 

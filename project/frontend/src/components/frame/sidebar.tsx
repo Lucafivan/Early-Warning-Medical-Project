@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link } from 'react-router-dom'; 
 import { LayoutDashboard, Table, Settings } from 'lucide-react';
 import { useNavigate, useLocation } from "react-router-dom";

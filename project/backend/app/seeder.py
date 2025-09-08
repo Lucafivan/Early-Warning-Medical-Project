@@ -1,4 +1,4 @@
-from .__init__ import db
+from . import db
 from .models import (
     WorkLocation, Hazard, Disease, User,
     Employee, EmployeeAssignment, HealthRecord,

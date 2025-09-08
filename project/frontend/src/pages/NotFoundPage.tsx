@@ -1,7 +1,6 @@
-import React from 'react'
 import { Link } from 'react-router-dom'
 
-function NotfoundPage() {
+function NotFoundPage() {
   return (
     <div className='h-screen bg-gray-800 flex flex-col justify-center items-center space-y-4'>
       <h1 className='text-red-500 text-6xl font-bold'>404</h1>
@@ -16,4 +15,4 @@ function NotfoundPage() {
   )
 }
 
-export default NotfoundPage
+export default NotFoundPage
