@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -11,7 +10,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 
-// Data dummy utk acc
+// Data dummy untuk account
 const accounts = [
   {
     id: "acc1",
@@ -108,7 +107,10 @@ function MenuProfile() {
 
       {/* Logout */}
       <div className="p-3">
-        <button className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors">
+        <button
+          onClick={handleNavigate}
+          className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors"
+        >
           <LogOut className="w-5 h-5" />
           <span className="font-medium">Logout</span>
         </button>
