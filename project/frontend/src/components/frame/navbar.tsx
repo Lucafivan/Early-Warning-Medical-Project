@@ -1,5 +1,6 @@
 import React from 'react'
 import spilLogo from "../../assets/spil_logo.png";
+import Navprofile from '../navprofile';
 
 function Navbar() {
   return (
@@ -11,14 +12,7 @@ function Navbar() {
         </div>
 
         {/* User info kanan */}
-        <div className="flex items-center gap-3">
-          <img src="https://i.pravatar.cc/40" alt="avatar" className="w-9 h-9 rounded-full object-cover" />
-          <div className="leading-tight">
-            <div className="font-semibold">Salam Pacific Indonesia Lines</div>
-            <div className="text-xs text-gray-500">spilsalampacificindonesialines@gmail.com</div>
-          </div>
-          <span className="text-gray-500">▾</span>
-        </div>
+        <Navprofile />
       </header>
   )
 }
