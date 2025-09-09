@@ -30,7 +30,7 @@ const LoginPage: React.FC = () => {
 
   const onSubmit: SubmitHandler<LoginFormInputs> = async (data) => {
     setIsSubmitting(true);
-    toast.loading('Mencoba untuk masuk...');
+    toast.loading('Please wait...');
 
     try {
       const response = await loginUser({
@@ -39,7 +39,7 @@ const LoginPage: React.FC = () => {
       });
 
       toast.dismiss();
-      toast.success('Login berhasil!');
+      toast.success('Login success');
  
       // SAVE TOKEN -> Buat get data
       localStorage.setItem('access_token', response.data.access_token);
