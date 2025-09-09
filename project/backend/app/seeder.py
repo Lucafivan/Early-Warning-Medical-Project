@@ -1,11 +1,18 @@
+import pandas as pd
 from . import db
+import os
 from .models import (
     WorkLocation, Hazard, Disease, User,
     Employee, EmployeeAssignment, HealthRecord,
     Weather, AirQuality
 )
 import random
+import requests
 from datetime import datetime, timedelta
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+EMPLOYEE_DATA_FILE = os.path.join(BASE_DIR, 'Alias Karyawan.xlsx')
+MEDICAL_DATA_FILE = os.path.join(BASE_DIR, 'Dummy Medical Data.xlsx')
 
 def seed_data():
     print("Seeding database...")
@@ -29,9 +36,8 @@ def seed_data():
     seed_hazards()
     seed_diseases()
     seed_users()
-    seed_employees()
-    seed_employee_assignments()
-    seed_health_records()
+    import_employee_data()
+    import_medical_data()
     seed_weather_and_air_quality()
     print("Database seeding completed!")
 
@@ -78,16 +84,46 @@ def seed_users():
     db.session.bulk_save_objects(users)
     db.session.commit()
     print("Seeded users table.")
-    
-def seed_employees():
-    employees = [
-        Employee(full_name="Budi Santoso", user_id=1),
-        Employee(full_name="Ani Wijaya", user_id=2),
-        Employee(full_name="Joko Susanto", user_id=3)
-    ]
-    db.session.bulk_save_objects(employees)
-    db.session.commit()
-    print("Seeded employees table.")
+
+def import_employee_data():
+    print(f"Memulai impor data dari '{EMPLOYEE_DATA_FILE}' (SQLAlchemy)...")
+    try:
+        df = pd.read_excel(EMPLOYEE_DATA_FILE)
+        df = df.where(pd.notna(df), None)
+        for index, row in df.iterrows():
+            employee_name = row['Name']
+            if not employee_name:
+                continue
+            # Cari atau buat employee
+            employee = Employee.query.filter_by(full_name=employee_name).first()
+            if not employee:
+                employee = Employee(full_name=employee_name)
+                db.session.add(employee)
+                db.session.flush()  # agar dapat id
+            # Cari atau buat lokasi
+            location_name = row['Location']
+            location = WorkLocation.query.filter_by(location_name=location_name).first()
+            if not location:
+                location = WorkLocation(location_name=location_name, city="-", latitude=None, longitude=None)
+                db.session.add(location)
+                db.session.flush()
+            # Tambah assignment
+            assignment = EmployeeAssignment(
+                employee_id=employee.id,
+                work_location_id=location.id,
+                department=row.get('Department'),
+                division=row.get('Division'),
+                position=row.get('Position'),
+                level=row.get('Level')
+            )
+            db.session.add(assignment)
+        db.session.commit()
+        print("Impor data karyawan selesai.")
+    except FileNotFoundError:
+        print(f"[ERROR] File '{EMPLOYEE_DATA_FILE}' tidak ditemukan.")
+    except Exception as e:
+        db.session.rollback()
+        print(f"[ERROR] Terjadi kesalahan saat impor data karyawan: {e}")
 
 def seed_employee_assignments():
     assignments = [
@@ -108,15 +144,113 @@ def seed_health_records():
     db.session.commit()
     print("Seeded health_records table.")
 
+def import_medical_data():
+    print(f"Memulai impor data dari '{MEDICAL_DATA_FILE}' (SQLAlchemy)...")
+    try:
+        df = pd.read_excel(MEDICAL_DATA_FILE)
+        df = df.where(pd.notna(df), None)
+        for index, row in df.iterrows():
+            patient_name = row['ALIAS_PATIENT']
+            if not patient_name:
+                continue
+            # Cari atau buat employee
+            employee = Employee.query.filter_by(full_name=patient_name).first()
+            if not employee:
+                employee = Employee(full_name=patient_name)
+                db.session.add(employee)
+                db.session.flush()
+            # Cari atau buat disease
+            disease_name = row['DIAGNOSIS DESC']
+            disease = Disease.query.filter_by(disease_name=disease_name).first()
+            if not disease:
+                disease = Disease(disease_name=disease_name)
+                db.session.add(disease)
+                db.session.flush()
+            # Parse tanggal
+            record_date = None
+            try:
+                val = row['ADMISSION_DATE']
+                if val is not None:
+                    record_date = pd.to_datetime(val, errors='coerce').date()
+            except Exception:
+                pass
+            def to_numeric_safe(val):
+                return pd.to_numeric(val, errors='coerce') if val is not None else None
+            health_record = HealthRecord(
+                employee_id=employee.id,
+                disease_id=disease.id,
+                record_type='Klaim PAK',
+                record_date=record_date,
+                claims_id=row.get('CLAIMS_ID'),
+                provider_name=row.get('PROVIDER NAME'),
+                due_total=to_numeric_safe(row.get('DUE_TOTAL')),
+                approve=to_numeric_safe(row.get('APPROVE')),
+                member_pay=to_numeric_safe(row.get('MEMBER PAY')),
+                excess_paid=to_numeric_safe(row.get('EXCESS PAID')),
+                excess_not_paid=to_numeric_safe(row.get('EXCESS NOT PAID')),
+                claim_status=row.get('STATUS'),
+                coverage_id=row.get('COVERAGE_ID')
+            )
+            db.session.add(health_record)
+        db.session.commit()
+        print("Impor data medis selesai.")
+    except FileNotFoundError:
+        print(f"[ERROR] File '{MEDICAL_DATA_FILE}' tidak ditemukan.")
+    except Exception as e:
+        db.session.rollback()
+        print(f"[ERROR] Terjadi kesalahan saat impor data medis: {e}")
+
+def get_current_weather(city='Jakarta'):
+    """Mengambil data cuaca dan kualitas udara terkini."""
+    print(f"Mengambil data cuaca terkini untuk {city}...")
+    API_KEY = os.environ.get('WEATHER_API_KEY', '14c57538c90d47e480622045250409')
+    base_url = "http://api.weatherapi.com/v1/current.json"
+    params = {'key': API_KEY, 'q': city, 'aqi': 'yes'}
+    try:
+        response = requests.get(base_url, params=params)
+        response.raise_for_status()
+        data = response.json()['current']
+        features = {
+            'temperature': data['temp_c'],
+            'humidity': data['humidity'],
+            'wind_speed': data['wind_kph'],
+            'pm25': data.get('air_quality', {}).get('pm2_5', 0)
+        }
+        print("  -> Data berhasil diambil.")
+        return features
+    except requests.exceptions.RequestException as e:
+        print(f"  [ERROR] Gagal mengambil data API: {e}")
+        return None
+
 def seed_weather_and_air_quality():
-    weather_data = [
-        Weather(work_location_id=1, temperature=28.5, humidity=75.2, wind_speed=10.1, timestamp=datetime.now()),
-        Weather(work_location_id=2, temperature=30.1, humidity=70.5, wind_speed=8.7, timestamp=datetime.now())
-    ]
-    air_quality_data = [
-        AirQuality(work_location_id=1, aqi=55.0, pm25=15.5, pm10=25.0, co_level=2.1, timestamp=datetime.now()),
-        AirQuality(work_location_id=2, aqi=82.0, pm25=25.8, pm10=35.5, co_level=3.5, timestamp=datetime.now())
-    ]
+    city_to_work_location = {
+        "Surabaya": [1],
+        "Jakarta": [4],
+        "Balikpapan": [5],
+        "Sampit": [6],
+        "Banjarmasin": [7],
+    }
+    weather_data = []
+    air_quality_data = []
+    for city, work_location_ids in city_to_work_location.items():
+        features = get_current_weather(city)
+        if features:
+            for work_location_id in work_location_ids:
+                weather_data.append(Weather(
+                    work_location_id=work_location_id,
+                    temperature=features.get('temperature'),
+                    humidity=features.get('humidity'),
+                    wind_speed=features.get('wind_speed'),
+                    timestamp=datetime.now()
+                ))
+                air_quality_data.append(AirQuality(
+                    work_location_id=work_location_id,
+                    aqi=None,
+                    pm25=features.get('pm25'),
+                    pm10=None,
+                    co_level=None,
+                    timestamp=datetime.now()
+                ))
     db.session.bulk_save_objects(weather_data + air_quality_data)
     db.session.commit()
     print("Seeded weather and air_quality tables.")
