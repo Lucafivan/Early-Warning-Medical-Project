@@ -55,38 +55,26 @@ function Sidebar() {
         </Link>
 
         <Link
-          to="/early-monitoring"
+          to="/early-warning"
           state={{ keepSidebarOpen: true }}
-          className={getLinkClass("/early-monitoring")}
+          className={getLinkClass("/early-warning")}
         >
           <Table size={20} />
           <span className={expanded ? "inline" : "hidden"}>
-            Early Monitoring
+            Early Warning
           </span>
         </Link>
 
         <Link
-          to="/budget-targeting"
+          to="/report"
           state={{ keepSidebarOpen: true }}
-          className={getLinkClass("/budget-targeting")}
+          className={getLinkClass("/report")}
         >
           <Target size={20} />
           <span className={expanded ? "inline" : "hidden"}>
-            Budget Targeting
+            Report
           </span>
         </Link>
-
-        {Array.from({ length: 5 }).map((_, i) => (
-          <Link
-            key={i}
-            to={`/nav-item-${i}`}
-            state={{ keepSidebarOpen: true }}
-            className={getLinkClass(`/nav-item-${i}`)}
-          >
-            <Star size={20} />
-            <span className={expanded ? "inline" : "hidden"}>Nav Item</span>
-          </Link>
-        ))}
 
         <button
           onClick={handleLogout}
