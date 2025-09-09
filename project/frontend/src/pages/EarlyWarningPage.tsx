@@ -1,4 +1,4 @@
-const BudgetTargetingPage: React.FC = () => {
+const EarlyWarningPage: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="rounded-xl bg-gray-200 h-14" />
@@ -13,4 +13,4 @@ const BudgetTargetingPage: React.FC = () => {
   );
 };
 
-export default BudgetTargetingPage;
+export default EarlyWarningPage;

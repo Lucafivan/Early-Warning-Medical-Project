@@ -4,8 +4,8 @@ import MainLayout from './layouts/MainLayout';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
-import EarlyMonitoringPage from './pages/EarlyMonitoringPage';
-import BudgetTargetingPage from './pages/BudgetTargetingPage';
+import EarlyWarningPage from './pages/EarlyWarningPage';
+import ReportPage from './pages/ReportPage';
 import NotFoundPage from './pages/NotFoundPage';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 
@@ -24,8 +24,8 @@ function App() {
       <Route element={<ProtectedRoute />}>
         <Route element={<MainLayout />}>
           <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/early-monitoring" element={<EarlyMonitoringPage />} />
-          <Route path="/budget-targeting" element={<BudgetTargetingPage />} />
+          <Route path="/early-warning" element={<EarlyWarningPage />} />
+          <Route path="/report" element={<ReportPage />} />
         </Route>
       </Route>
 
