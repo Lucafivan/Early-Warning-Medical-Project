@@ -8,7 +8,7 @@ from .models import (
 )
 import random
 import requests
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 EMPLOYEE_DATA_FILE = os.path.join(BASE_DIR, 'Alias Karyawan.xlsx')
@@ -34,7 +34,6 @@ def seed_data():
 
     seed_work_locations()
     seed_hazards()
-    seed_diseases()
     seed_users()
     import_employee_data()
     import_medical_data()
@@ -64,16 +63,6 @@ def seed_hazards():
     db.session.bulk_save_objects(hazards)
     db.session.commit()
     print("Seeded hazards table.")
-
-def seed_diseases():
-    diseases = [
-        Disease(disease_name="Silikosis"),
-        Disease(disease_name="Tinnitus"),
-        Disease(disease_name="Asma Kerja")
-    ]
-    db.session.bulk_save_objects(diseases)
-    db.session.commit()
-    print("Seeded diseases table.")
 
 def seed_users():
     users = [
@@ -200,57 +189,52 @@ def import_medical_data():
         db.session.rollback()
         print(f"[ERROR] Terjadi kesalahan saat impor data medis: {e}")
 
-def get_current_weather(city='Jakarta'):
-    """Mengambil data cuaca dan kualitas udara terkini."""
-    print(f"Mengambil data cuaca terkini untuk {city}...")
-    API_KEY = os.environ.get('WEATHER_API_KEY', '14c57538c90d47e480622045250409')
-    base_url = "http://api.weatherapi.com/v1/current.json"
-    params = {'key': API_KEY, 'q': city, 'aqi': 'yes'}
-    try:
-        response = requests.get(base_url, params=params)
-        response.raise_for_status()
-        data = response.json()['current']
-        features = {
-            'temperature': data['temp_c'],
-            'humidity': data['humidity'],
-            'wind_speed': data['wind_kph'],
-            'pm25': data.get('air_quality', {}).get('pm2_5', 0)
-        }
-        print("  -> Data berhasil diambil.")
-        return features
-    except requests.exceptions.RequestException as e:
-        print(f"  [ERROR] Gagal mengambil data API: {e}")
-        return None
-
 def seed_weather_and_air_quality():
-    city_to_work_location = {
-        "Surabaya": [1],
-        "Jakarta": [4],
-        "Balikpapan": [5],
-        "Sampit": [6],
-        "Banjarmasin": [7],
-    }
+    VISUAL_CROSSING_KEY = "4SD5JP775G8EFDF9T5HV7KF2B"
+    AQICN_TOKEN = "db81fc42c61c3ed75bf2a98c285470286fc8da51"
+    today = date.today().isoformat()
+    work_locations = WorkLocation.query.filter(WorkLocation.latitude != None, WorkLocation.longitude != None).all()
     weather_data = []
     air_quality_data = []
-    for city, work_location_ids in city_to_work_location.items():
-        features = get_current_weather(city)
-        if features:
-            for work_location_id in work_location_ids:
+    for loc in work_locations:
+        lat = float(loc.latitude)
+        lon = float(loc.longitude)
+        
+        weather_url = f"https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/{lat},{lon}/{today}?unitGroup=metric&key={VISUAL_CROSSING_KEY}&include=days"
+        try:
+            wresp = requests.get(weather_url)
+            wresp.raise_for_status()
+            wjson = wresp.json()
+            day = wjson['days'][0] if 'days' in wjson and wjson['days'] else None
+            if day:
                 weather_data.append(Weather(
-                    work_location_id=work_location_id,
-                    temperature=features.get('temperature'),
-                    humidity=features.get('humidity'),
-                    wind_speed=features.get('wind_speed'),
+                    work_location_id=loc.id,
+                    temperature=day.get('temp', None),
+                    humidity=day.get('humidity', None),
+                    wind_speed=day.get('windspeed', None),
                     timestamp=datetime.now()
                 ))
+        except Exception as e:
+            print(f"[Weather] Failed for {loc.location_name}: {e}")
+
+        aq_url = f"https://api.waqi.info/feed/geo:{lat};{lon}/?token={AQICN_TOKEN}"
+        try:
+            aqresp = requests.get(aq_url)
+            aqresp.raise_for_status()
+            aqjson = aqresp.json()
+            if aqjson.get('status') == 'ok':
+                iaqi = aqjson['data'].get('iaqi', {})
                 air_quality_data.append(AirQuality(
-                    work_location_id=work_location_id,
-                    aqi=None,
-                    pm25=features.get('pm25'),
-                    pm10=None,
-                    co_level=None,
+                    work_location_id=loc.id,
+                    aqi=aqjson['data'].get('aqi', None),
+                    pm25=iaqi.get('pm25', {}).get('v', None),
+                    pm10=iaqi.get('pm10', {}).get('v', None),
+                    co_level=iaqi.get('co', {}).get('v', None),
                     timestamp=datetime.now()
                 ))
+        except Exception as e:
+            print(f"[AQICN] Failed for {loc.location_name}: {e}")
+
     db.session.bulk_save_objects(weather_data + air_quality_data)
     db.session.commit()
     print("Seeded weather and air_quality tables.")

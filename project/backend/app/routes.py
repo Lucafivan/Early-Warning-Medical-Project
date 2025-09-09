@@ -1,11 +1,15 @@
-from flask import jsonify, request, Blueprint
 from . import db
-from .models import AirQuality, Disease, Employee, EmployeeAssignment, Hazard, HealthRecord, User, Weather, WorkLocation
+from .models import (
+    WorkLocation, Hazard, Disease, User,
+    Employee, EmployeeAssignment, HealthRecord,
+    Weather, AirQuality
+)
+from flask import jsonify, request, Blueprint
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from sqlalchemy import func
 
 main_bp = Blueprint('main_bp', __name__)
 user_bp = Blueprint("user", __name__)
-
 
 @main_bp.route('/')
 def index():
@@ -64,51 +68,6 @@ def get_users():
             'created_at': user.created_at
         })
     return jsonify(output)
-
-@user_bp.route('/me', methods=['PUT'])
-@jwt_required()
-def update_me():
-    current_user_email = get_jwt_identity()
-    user = User.query.filter_by(email=current_user_email).first()
-
-    if not user:
-        return jsonify({"error": "User not found"}), 404
-
-    data = request.get_json()
-
-    # Update username
-    if "username" in data and data["username"]:
-        existing_user = User.query.filter_by(username=data["username"]).first()
-        if existing_user and existing_user.id != user.id:
-            return jsonify({"error": "Username already taken"}), 400
-        user.username = data["username"]
-
-    # Update email
-    if "email" in data and data["email"]:
-        existing_email = User.query.filter_by(email=data["email"]).first()
-        if existing_email and existing_email.id != user.id:
-            return jsonify({"error": "Email already in use"}), 400
-        user.email = data["email"]
-
-    # Update password
-    if "password" in data and data["password"]:
-        if "confirm_password" not in data or data["password"] != data["confirm_password"]:
-            return jsonify({"error": "Password confirmation does not match"}), 400
-        user.set_password(data["password"])
-
-    db.session.commit()
-
-    return jsonify({
-        "message": "User updated successfully",
-        "user": {
-            "id": user.id,
-            "username": user.username,
-            "email": user.email,
-            "role": user.role,
-            "created_at": user.created_at
-        }
-    }), 200
-
 
 @main_bp.route('/employees', methods=['GET'])
 def get_employees():
@@ -191,3 +150,118 @@ def get_air_quality():
             'timestamp': aq.timestamp
         })
     return jsonify(output)
+
+@main_bp.route('/dashboard_top_diseases', methods=['GET'])
+def get_dashboard_top_diseases():
+    try:
+        limit = int(request.args.get('limit', 10))
+        if limit < 1:
+            limit = 1
+        elif limit > 50:
+            limit = 50
+    except (ValueError, TypeError):
+        limit = 10
+
+    results = (
+        db.session.query(
+            HealthRecord.disease_id,
+            func.count(HealthRecord.id).label('count'),
+            Disease.disease_name
+        )
+        .join(Disease, HealthRecord.disease_id == Disease.id)
+        .group_by(HealthRecord.disease_id, Disease.disease_name)
+        .order_by(func.count(HealthRecord.id).desc())
+        .limit(limit)
+        .all()
+    )
+    output = [
+        {
+            'disease_id': r.disease_id,
+            'disease_name': r.disease_name,
+            'count': r.count
+        }
+        for r in results
+    ]
+    return jsonify(output)
+
+@main_bp.route('/dashboard_weather', methods=['GET'])
+@jwt_required()
+def get_dashboard_weather():
+    current_user_email = get_jwt_identity()
+    user = User.query.filter_by(email=current_user_email).first()
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+
+    employee = Employee.query.filter_by(user_id=user.id).first()
+    if not employee:
+        return jsonify({'error': 'Employee not found'}), 404
+
+    assignment = EmployeeAssignment.query.filter_by(employee_id=employee.id).first()
+    if not assignment:
+        return jsonify({'error': 'Employee assignment not found'}), 404
+
+    work_location_id = assignment.work_location_id
+    weather = Weather.query.filter_by(work_location_id=work_location_id).order_by(Weather.timestamp.desc()).first()
+    air_quality = AirQuality.query.filter_by(work_location_id=work_location_id).order_by(AirQuality.timestamp.desc()).first()
+
+    result = {
+        'weather': {
+            'temperature': weather.temperature if weather else None,
+            'humidity': weather.humidity if weather else None,
+            'wind_speed': weather.wind_speed if weather else None,
+            'timestamp': weather.timestamp if weather else None
+        } if weather else None,
+        'air_quality': {
+            'aqi': air_quality.aqi if air_quality else None,
+            'pm25': air_quality.pm25 if air_quality else None,
+            'pm10': air_quality.pm10 if air_quality else None,
+            'co_level': air_quality.co_level if air_quality else None,
+            'timestamp': air_quality.timestamp if air_quality else None
+        } if air_quality else None
+    }
+    return jsonify(result)
+
+@user_bp.route('/me', methods=['PUT'])
+@jwt_required()
+def update_me():
+    current_user_email = get_jwt_identity()
+    user = User.query.filter_by(email=current_user_email).first()
+
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    data = request.get_json()
+
+    # Update username
+    if "username" in data and data["username"]:
+        existing_user = User.query.filter_by(username=data["username"]).first()
+        if existing_user and existing_user.id != user.id:
+            return jsonify({"error": "Username already taken"}), 400
+        user.username = data["username"]
+
+    # Update email
+    if "email" in data and data["email"]:
+        existing_email = User.query.filter_by(email=data["email"]).first()
+        if existing_email and existing_email.id != user.id:
+            return jsonify({"error": "Email already in use"}), 400
+        user.email = data["email"]
+
+    # Update password
+    if "password" in data and data["password"]:
+        if "confirm_password" not in data or data["password"] != data["confirm_password"]:
+            return jsonify({"error": "Password confirmation does not match"}), 400
+        user.set_password(data["password"])
+
+    db.session.commit()
+
+    return jsonify({
+        "message": "User updated successfully",
+        "user": {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "role": user.role,
+            "created_at": user.created_at
+        }
+    }), 200
+
