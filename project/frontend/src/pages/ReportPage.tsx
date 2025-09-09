@@ -1,4 +1,4 @@
-const EarlyMonitoringPage: React.FC = () => {
+const ReportPage: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="rounded-xl bg-gray-200 h-14" />
@@ -13,4 +13,4 @@ const EarlyMonitoringPage: React.FC = () => {
   );
 };
 
-export default EarlyMonitoringPage;
+export default ReportPage;

@@ -19,7 +19,7 @@ def get_locations():
         output.append({
             'id': loc.id,
             'name': loc.location_name,
-            'address': loc.address,
+            'city': loc.city,
             'latitude': loc.latitude,
             'longitude': loc.longitude
         })

@@ -1,9 +1,7 @@
-import { createContext, useState, useContext, type ReactNode } from 'react';
+import { createContext, useState, useContext, useEffect, type ReactNode } from 'react';
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  userEmail: string | null;
-  setUserEmail: (email: string | null) => void;
   login: () => void;
   logout: () => void;
 }
@@ -12,21 +10,29 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userEmail, setUserEmail] = useState<string | null>(null);
+
+  // Cek token di localStorage saat app pertama kali load
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+    if (token) {
+      setIsAuthenticated(true);
+    }
+  }, []);
 
   const login = () => {
     console.log("Fungsi login dipanggil!");
     setIsAuthenticated(true);
+    // token sudah disimpan di LoginPage, jadi tidak perlu lagi di sini
   };
 
   const logout = () => {
     console.log("Fungsi logout dipanggil!");
     setIsAuthenticated(false);
-    setUserEmail(null);
+    localStorage.removeItem("access_token"); // hapus token saat logout
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, userEmail, setUserEmail, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

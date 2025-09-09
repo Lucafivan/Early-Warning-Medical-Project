@@ -1,11 +1,14 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { LayoutDashboard, Table, Target, Star, LogOut } from "lucide-react";
+import { useAuth } from "../../contexts/AuthContext";
+import toast from "react-hot-toast";
 
 function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
   const currentPath = location.pathname;
+  const {logout} = useAuth();
 
   const [expanded, setExpanded] = useState(false);
 
@@ -24,6 +27,13 @@ function Sidebar() {
 
     return `${baseClasses} ${activeClass}`;
   };
+
+  const handleLogout = () => {
+    logout();
+
+    toast.success("Logout success");
+    navigate("/login")
+  }
 
   return (
     <aside
@@ -45,42 +55,30 @@ function Sidebar() {
         </Link>
 
         <Link
-          to="/early-monitoring"
+          to="/early-warning"
           state={{ keepSidebarOpen: true }}
-          className={getLinkClass("/early-monitoring")}
+          className={getLinkClass("/early-warning")}
         >
           <Table size={20} />
           <span className={expanded ? "inline" : "hidden"}>
-            Early Monitoring
+            Early Warning
           </span>
         </Link>
 
         <Link
-          to="/budget-targeting"
+          to="/report"
           state={{ keepSidebarOpen: true }}
-          className={getLinkClass("/budget-targeting")}
+          className={getLinkClass("/report")}
         >
           <Target size={20} />
           <span className={expanded ? "inline" : "hidden"}>
-            Budget Targeting
+            Report
           </span>
         </Link>
 
-        {Array.from({ length: 5 }).map((_, i) => (
-          <Link
-            key={i}
-            to={`/nav-item-${i}`}
-            state={{ keepSidebarOpen: true }}
-            className={getLinkClass(`/nav-item-${i}`)}
-          >
-            <Star size={20} />
-            <span className={expanded ? "inline" : "hidden"}>Nav Item</span>
-          </Link>
-        ))}
-
         <button
-          onClick={() => navigate("/login")}
-          className={`mt-auto flex items-center justify-center gap-2 rounded-xl px-3 py-2 font-semibold bg-red-500 text-white hover:brightness-95 mb-24`}
+          onClick={handleLogout}
+          className={`mt-auto flex items-center justify-center gap-2 rounded-xl px-3 py-2 font-semibold bg-red-600 text-white hover:brightness-95 mb-24`}
         >
           <LogOut size={20} />
           {expanded && <span>Logout</span>}

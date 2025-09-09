@@ -20,7 +20,7 @@ const loginSchema = z.object({
 type LoginFormInputs = z.infer<typeof loginSchema>;
 
 const LoginPage: React.FC = () => {
-  const { login, setUserEmail } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -30,30 +30,29 @@ const LoginPage: React.FC = () => {
 
   const onSubmit: SubmitHandler<LoginFormInputs> = async (data) => {
     setIsSubmitting(true);
-    toast.loading('Mencoba untuk masuk...'); // Tampilkan notifikasi loading
+    toast.loading('Please wait...');
 
     try {
-      await loginUser({
+      const response = await loginUser({
         email: data.email,
         password: data.password,
       });
 
       toast.dismiss();
-      toast.success('Login berhasil!');
+      toast.success('Login success');
+ 
+      // SAVE TOKEN -> Buat get data
+      localStorage.setItem('access_token', response.data.access_token);
       
-      // Jika backend mengirim token, Anda bisa menyimpannya di sini
-      // contoh: localStorage.setItem('token', response.data.token);
-      
-  login(); // Ubah status di AuthContext
-  setUserEmail(data.email); // Simpan email user ke context
-  navigate('/dashboard');
+      login(); // Ubah status di AuthContext
+      navigate('/dashboard');
 
     } catch (error) {
-      toast.dismiss(); // Hapus notifikasi loading
+      toast.dismiss();
       toast.error('Login gagal. Periksa kembali email dan password Anda.');
       console.error('Error saat login:', error);
     } finally {
-      setIsSubmitting(false); // Selalu hentikan loading, baik sukses maupun gagal
+      setIsSubmitting(false);
     }
   };
 
