@@ -1,10 +1,11 @@
--- ===================================================================
--- Skrip SQL Final untuk Proyek Early Warning System
--- Didesain untuk diisi dari file hasil_gabungan_final.csv
--- ===================================================================
+-- ==========================================
+-- Skrip SQL untuk Membuat Semua Tabel
+-- Versi ini mendukung multi-role (user, admin, super admin)
+-- dan integrasi bahaya (hazards) untuk sistem early warning.
+-- ==========================================
 
 -- Menghapus tabel lama jika ada untuk memastikan setup yang bersih
-DROP TABLE IF EXISTS risk_predictions CASCADE;
+DROP TABLE IF EXISTS location_hazards CASCADE;
 DROP TABLE IF EXISTS air_quality CASCADE;
 DROP TABLE IF EXISTS weather CASCADE;
 DROP TABLE IF EXISTS health_records CASCADE;
@@ -16,17 +17,17 @@ DROP TABLE IF EXISTS hazards CASCADE;
 DROP TABLE IF EXISTS work_locations CASCADE;
 
 -- ==========================================
--- TABEL MASTER LOKASI KERJA
+-- TABEL MASTER: Lokasi Kerja
 -- ==========================================
 CREATE TABLE work_locations (
     id SERIAL PRIMARY KEY,
     location_name VARCHAR(150) NOT NULL UNIQUE,
-    latitude DECIMAL(18, 14),
-    longitude DECIMAL(18, 14)
+    latitude DECIMAL(18, 15),
+    longitude DECIMAL(18, 15)
 );
 
 -- ==========================================
--- TABEL MASTER PENYAKIT (DISEASES)
+-- TABEL MASTER: Penyakit
 -- ==========================================
 CREATE TABLE diseases (
     id SERIAL PRIMARY KEY,
@@ -34,7 +35,7 @@ CREATE TABLE diseases (
 );
 
 -- ==========================================
--- TABEL KARYAWAN (EMPLOYEES)
+-- TABEL MASTER: Karyawan
 -- ==========================================
 CREATE TABLE employees (
     id SERIAL PRIMARY KEY,
@@ -42,7 +43,30 @@ CREATE TABLE employees (
 );
 
 -- ==========================================
--- TABEL RIWAYAT PENUGASAN KARYAWAN
+-- TABEL MASTER: Potensi Bahaya (Hazards)
+-- ==========================================
+CREATE TABLE hazards (
+    id SERIAL PRIMARY KEY,
+    hazard_name VARCHAR(150) NOT NULL UNIQUE,
+    hazard_type VARCHAR(50), -- Contoh: 'Kimia', 'Fisik', 'Ergonomi'
+    description TEXT
+);
+
+-- ==========================================
+-- TABEL PENGGUNA (USERS) - [DIPERBARUI]
+-- ==========================================
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(100) UNIQUE NOT NULL,
+    password_hash VARCHAR(200) NOT NULL,
+    email VARCHAR(100) UNIQUE,
+    -- Role bisa berupa: 'user', 'admin', atau 'super admin'
+    role VARCHAR(20) NOT NULL DEFAULT 'user',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ==========================================
+-- TABEL TRANSAKSIONAL: Penugasan Karyawan
 -- ==========================================
 CREATE TABLE employee_assignments (
     id SERIAL PRIMARY KEY,
@@ -52,12 +76,32 @@ CREATE TABLE employee_assignments (
     division VARCHAR(100),
     position VARCHAR(100),
     level VARCHAR(50),
-    -- Mencegah entri duplikat untuk penugasan yang sama
-    CONSTRAINT unique_assignment UNIQUE (employee_id, work_location_id, position, department, division)
+    -- Constraint untuk mencegah duplikasi penugasan yang sama persis
+    UNIQUE(employee_id, work_location_id, department, division, position, level)
 );
 
 -- ==========================================
--- TABEL CUACA HARIAN
+-- TABEL TRANSAKSIONAL: Riwayat Kesehatan
+-- ==========================================
+CREATE TABLE health_records (
+    id SERIAL PRIMARY KEY,
+    claims_id BIGINT UNIQUE,
+    employee_id INT NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
+    disease_id INT REFERENCES diseases(id),
+    admission_date TIMESTAMP,
+    dischargeable_date TIMESTAMP,
+    provider_name VARCHAR(255),
+    due_total NUMERIC,
+    approve NUMERIC,
+    member_pay NUMERIC,
+    status VARCHAR(50),
+    duration_stay INT,
+    daily_cases INT,
+    high_risk INT
+);
+
+-- ==========================================
+-- TABEL TRANSAKSIONAL: Cuaca
 -- ==========================================
 CREATE TABLE weather (
     id SERIAL PRIMARY KEY,
@@ -67,48 +111,17 @@ CREATE TABLE weather (
     max_temp FLOAT,
     avg_temp FLOAT,
     weather_condition VARCHAR(100),
-    -- Mencegah data cuaca duplikat untuk hari dan lokasi yang sama
-    CONSTRAINT weather_location_date_unique UNIQUE (work_location_id, timestamp)
+    UNIQUE(work_location_id, timestamp)
 );
 
 -- ==========================================
--- TABEL KUALITAS UDARA HARIAN
+-- TABEL TRANSAKSIONAL: Kualitas Udara
 -- ==========================================
 CREATE TABLE air_quality (
     id SERIAL PRIMARY KEY,
     work_location_id INT NOT NULL REFERENCES work_locations(id),
     timestamp DATE NOT NULL,
     air_quality_index INT,
-    -- Mencegah data AQI duplikat untuk hari dan lokasi yang sama
-    CONSTRAINT air_quality_location_date_unique UNIQUE (work_location_id, timestamp)
-);
-
--- ==========================================
--- TABEL DATA KESEHATAN (FAKTA UTAMA)
--- ==========================================
-CREATE TABLE health_records (
-    id SERIAL PRIMARY KEY,
-    employee_id INT NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
-    disease_id INT REFERENCES diseases(id),
-    admission_date TIMESTAMP,
-    dischargeable_date TIMESTAMP,
-    claims_id BIGINT UNIQUE,
-    provider_name VARCHAR(255),
-    status VARCHAR(100),
-    -- Kolom baru dari file gabungan
-    duration_stay_days INT,
-    daily_cases INT,
-    high_risk INT -- 1 untuk True, 0 untuk False
-);
-
--- ==========================================
--- TABEL UNTUK PREDIKSI BACKEND
--- ==========================================
-CREATE TABLE risk_predictions (
-    id SERIAL PRIMARY KEY,
-    work_location_id INT NOT NULL REFERENCES work_locations(id),
-    prediction_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    predicted_risk_level VARCHAR(50),
-    input_features JSONB -- Menyimpan fitur cuaca yang digunakan untuk prediksi
+    UNIQUE(work_location_id, timestamp)
 );
 
