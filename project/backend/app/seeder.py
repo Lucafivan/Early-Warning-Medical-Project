@@ -1,4 +1,8 @@
 from . import db
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../Database/database back end')))
+from .real_time_weather_importer import get_current_weather
 from .models import (
     WorkLocation, Hazard, Disease, User,
     Employee, EmployeeAssignment, HealthRecord,
@@ -109,14 +113,34 @@ def seed_health_records():
     print("Seeded health_records table.")
 
 def seed_weather_and_air_quality():
-    weather_data = [
-        Weather(work_location_id=1, temperature=28.5, humidity=75.2, wind_speed=10.1, timestamp=datetime.now()),
-        Weather(work_location_id=2, temperature=30.1, humidity=70.5, wind_speed=8.7, timestamp=datetime.now())
-    ]
-    air_quality_data = [
-        AirQuality(work_location_id=1, aqi=55.0, pm25=15.5, pm10=25.0, co_level=2.1, timestamp=datetime.now()),
-        AirQuality(work_location_id=2, aqi=82.0, pm25=25.8, pm10=35.5, co_level=3.5, timestamp=datetime.now())
-    ]
+    city_to_work_location = {
+        "Surabaya": [1],
+        "Jakarta": [4],
+        "Balikpapan": [5],
+        "Sampit": [6],
+        "Banjarmasin": [7],
+    }
+    weather_data = []
+    air_quality_data = []
+    for city, work_location_ids in city_to_work_location.items():
+        features = get_current_weather(city)
+        if features:
+            for work_location_id in work_location_ids:
+                weather_data.append(Weather(
+                    work_location_id=work_location_id,
+                    temperature=features.get('temperature'),
+                    humidity=features.get('humidity'),
+                    wind_speed=features.get('wind_speed'),
+                    timestamp=datetime.now()
+                ))
+                air_quality_data.append(AirQuality(
+                    work_location_id=work_location_id,
+                    aqi=None,
+                    pm25=features.get('pm25'),
+                    pm10=None,
+                    co_level=None,
+                    timestamp=datetime.now()
+                ))
     db.session.bulk_save_objects(weather_data + air_quality_data)
     db.session.commit()
     print("Seeded weather and air_quality tables.")
