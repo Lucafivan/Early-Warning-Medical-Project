@@ -42,7 +42,7 @@ def create_app():
     
     with app.app_context():
         # Import dan daftarkan rute
-        from .routes import main_bp
+        from .routes import main_bp, user_bp
         from .auth_routes import auth_bp
         from . import models
         from .seeder import seed_data
@@ -54,6 +54,7 @@ def create_app():
 
         app.register_blueprint(main_bp)
         app.register_blueprint(auth_bp, url_prefix='/auth')
+        app.register_blueprint(user_bp, url_prefix='/users') 
 
         @app.cli.command("seed")
         def seed_command():
