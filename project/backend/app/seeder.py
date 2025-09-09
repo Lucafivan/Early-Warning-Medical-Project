@@ -9,6 +9,22 @@ from datetime import datetime, timedelta
 
 def seed_data():
     print("Seeding database...")
+    from sqlalchemy import text
+    for table, seq in [
+        ("employee_assignments", "employee_assignments_id_seq"),
+        ("air_quality", "air_quality_id_seq"),
+        ("weather", "weather_id_seq"),
+        ("work_locations", "work_locations_id_seq"),
+        ("health_records", "health_records_id_seq"),
+        ("employees", "employees_id_seq"),
+        ("diseases", "diseases_id_seq"),
+        ("hazards", "hazards_id_seq"),
+        ("users", "users_id_seq"),
+    ]:
+        db.session.execute(text(f"DELETE FROM {table}"))
+        db.session.execute(text(f"ALTER SEQUENCE {seq} RESTART WITH 1"))
+    db.session.commit()
+
     seed_work_locations()
     seed_hazards()
     seed_diseases()
@@ -21,9 +37,14 @@ def seed_data():
 
 def seed_work_locations():
     locations = [
-        WorkLocation(location_name="Kantor Pusat", address="Jl. Jend. Sudirman No. 1", latitude=-6.2088, longitude=106.8456),
-        WorkLocation(location_name="Pabrik Surabaya", address="Jl. Raya Kalirungkut No. 50", latitude=-7.2917, longitude=112.7937),
-        WorkLocation(location_name="Gudang Bekasi", address="Jl. Narogong Km 10", latitude=-6.2372, longitude=106.9753)
+        WorkLocation(location_name="Kantor Pusat", city="Surabaya", latitude=-7.2371678363250735, longitude=112.73933699269045),
+        WorkLocation(location_name="Perak Barat", city="Surabaya", latitude=-7.231449273619633, longitude=112.72828546626496),
+        WorkLocation(location_name="Kalianak", city="Surabaya", latitude=-7.230964164937335, longitude=112.7058541276304),
+        WorkLocation(location_name="Cabang Jakarta", city="Jakarta", latitude=-6.110445734514671, longitude=106.8920855806901),
+        WorkLocation(location_name="Cabang Balikpapan", city="Balikpapan", latitude=-1.2753420746274544, longitude=116.8187722896864),
+        WorkLocation(location_name="Cabang Sampit", city="Sampit", latitude=-2.5529751355733588, longitude=112.94999966042496),
+        WorkLocation(location_name="Cabang Banjarmasin", city="Banjarmasin", latitude=-3.321447748621868, longitude=114.58010402393569),
+        WorkLocation(location_name="LCE Surabaya", city="Surabaya", latitude=None, longitude=None)
     ]
     db.session.bulk_save_objects(locations)
     db.session.commit()
