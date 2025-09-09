@@ -1,6 +1,4 @@
 import { useState, useEffect } from "react";
-import { ChevronDown, ChevronUp } from "lucide-react";
-import MenuProfile from "./frame/menuprofile";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode"; 
 
@@ -37,8 +35,7 @@ interface DecodedToken {
 }
 
 function NavProfile() {
-  const [open, setOpen] = useState(false);
- 
+  
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
@@ -80,11 +77,7 @@ function NavProfile() {
 
   return (
     <div className="relative">
-      {/* Trigger */}
-      <div
-        className="flex items-center gap-3 cursor-pointer"
-        onClick={() => setOpen(!open)}
-      >
+      <div className="flex items-center gap-3">
         <DefaultAvatar />
         <div className="leading-tight">
           {/* 6. Tampilkan data dari state, beri fallback "Loading..." */}
@@ -95,19 +88,7 @@ function NavProfile() {
             {user ? user.email : ""}
           </div>
         </div>
-        {open ? (
-          <ChevronUp className="w-4 h-4 text-gray-500" />
-        ) : (
-          <ChevronDown className="w-4 h-4 text-gray-500" />
-        )}
       </div>
-
-      {/* Dropdown menu */}
-      {open && (
-        <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border mr-24 ">
-          <MenuProfile />
-        </div>
-      )}
     </div>
   );
 }

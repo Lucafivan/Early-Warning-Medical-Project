@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { LayoutDashboard, Table, Target, Star, LogOut } from "lucide-react";
+import { LayoutDashboard, Table, Target, LogOut } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import toast from "react-hot-toast";
 
