@@ -1,7 +1,12 @@
-from flask import jsonify, request, Blueprint
 from . import db
-from .models import AirQuality, Disease, Employee, EmployeeAssignment, Hazard, HealthRecord, User, Weather, WorkLocation
+from .models import (
+    WorkLocation, Hazard, Disease, User,
+    Employee, EmployeeAssignment, HealthRecord,
+    Weather, AirQuality
+)
+from flask import jsonify, request, Blueprint
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from sqlalchemy import func
 
 main_bp = Blueprint('main_bp', __name__)
 user_bp = Blueprint("user", __name__)
@@ -146,7 +151,40 @@ def get_air_quality():
         })
     return jsonify(output)
 
-@main_bp.route('/dashboard-weather', methods=['GET'])
+@main_bp.route('/dashboard_top_diseases', methods=['GET'])
+def get_dashboard_top_diseases():
+    try:
+        limit = int(request.args.get('limit', 10))
+        if limit < 1:
+            limit = 1
+        elif limit > 50:
+            limit = 50
+    except (ValueError, TypeError):
+        limit = 10
+
+    results = (
+        db.session.query(
+            HealthRecord.disease_id,
+            func.count(HealthRecord.id).label('count'),
+            Disease.disease_name
+        )
+        .join(Disease, HealthRecord.disease_id == Disease.id)
+        .group_by(HealthRecord.disease_id, Disease.disease_name)
+        .order_by(func.count(HealthRecord.id).desc())
+        .limit(limit)
+        .all()
+    )
+    output = [
+        {
+            'disease_id': r.disease_id,
+            'disease_name': r.disease_name,
+            'count': r.count
+        }
+        for r in results
+    ]
+    return jsonify(output)
+
+@main_bp.route('/dashboard_weather', methods=['GET'])
 @jwt_required()
 def get_dashboard_weather():
     current_user_email = get_jwt_identity()
