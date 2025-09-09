@@ -65,36 +65,32 @@ def get_users():
         })
     return jsonify(output)
 
-@user_bp.route('/<int:user_id>', methods=['PUT'])
+@user_bp.route('/me', methods=['PUT'])
 @jwt_required()
-def update_user(user_id):
-    current_user_email = get_jwt_identity()  # email
-    user = User.query.get(user_id)
+def update_me():
+    current_user_email = get_jwt_identity()
+    user = User.query.filter_by(email=current_user_email).first()
 
     if not user:
         return jsonify({"error": "User not found"}), 404
 
-    if user.email != current_user_email:
-        return jsonify({"error": "Unauthorized"}), 403
-
-    # ambil data dari request body
     data = request.get_json()
 
-    # Validasi & update field
+    # Update username
     if "username" in data and data["username"]:
-        # cek kalau username sudah dipakai user lain
         existing_user = User.query.filter_by(username=data["username"]).first()
         if existing_user and existing_user.id != user.id:
             return jsonify({"error": "Username already taken"}), 400
         user.username = data["username"]
 
+    # Update email
     if "email" in data and data["email"]:
-        # cek kalau email sudah dipakai user lain
         existing_email = User.query.filter_by(email=data["email"]).first()
         if existing_email and existing_email.id != user.id:
             return jsonify({"error": "Email already in use"}), 400
         user.email = data["email"]
 
+    # Update password
     if "password" in data and data["password"]:
         if "confirm_password" not in data or data["password"] != data["confirm_password"]:
             return jsonify({"error": "Password confirmation does not match"}), 400
@@ -111,7 +107,8 @@ def update_user(user_id):
             "role": user.role,
             "created_at": user.created_at
         }
-    })
+    }), 200
+
 
 @main_bp.route('/employees', methods=['GET'])
 def get_employees():
