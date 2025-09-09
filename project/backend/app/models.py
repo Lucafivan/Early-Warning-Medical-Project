@@ -5,7 +5,7 @@ class WorkLocation(db.Model):
     __tablename__ = 'work_locations'
     id = db.Column(db.Integer, primary_key=True)
     location_name = db.Column(db.String(150), nullable=False, unique=True)
-    address = db.Column(db.Text)
+    city = db.Column(db.String(100), nullable=False)
     latitude = db.Column(db.Numeric(9, 6))
     longitude = db.Column(db.Numeric(9, 6))
 
@@ -41,7 +41,7 @@ class Employee(db.Model):
     __tablename__ = 'employees'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True)
-    full_name = db.Column(db.String(100), nullable=False)
+    full_name = db.Column(db.String(100), nullable=False, unique=True)
 
 class EmployeeAssignment(db.Model):
     __tablename__ = 'employee_assignments'
@@ -77,7 +77,7 @@ class Weather(db.Model):
     temperature = db.Column(db.Float)
     humidity = db.Column(db.Float)
     wind_speed = db.Column(db.Float)
-    timestamp = db.Column(db.DateTime, default=datetime.now)
+    timestamp = db.Column(db.DateTime, default=datetime.now, nullable=False)
 
 class AirQuality(db.Model):
     __tablename__ = 'air_quality'
@@ -87,4 +87,4 @@ class AirQuality(db.Model):
     pm25 = db.Column(db.Float)
     pm10 = db.Column(db.Float)
     co_level = db.Column(db.Float)
-    timestamp = db.Column(db.DateTime, default=datetime.now)
+    timestamp = db.Column(db.DateTime, default=datetime.now, nullable=False)
