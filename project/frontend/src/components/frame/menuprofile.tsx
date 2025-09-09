@@ -20,10 +20,10 @@ function MenuProfile() {
       logout();
       navigate("/login");
       toast.dismiss();
-      toast.success('berhasil logout!');
+      toast.success('Logout success');
       
     } catch (err) {
-      console.error("Logout gagal:", err);
+      console.error("Logout failed:", err);
     }
   };
 

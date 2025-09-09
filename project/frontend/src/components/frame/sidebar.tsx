@@ -31,7 +31,7 @@ function Sidebar() {
   const handleLogout = () => {
     logout();
 
-    toast.success("berhasil logout")
+    toast.success("Logout success");
     navigate("/login")
   }
 
