@@ -34,7 +34,6 @@ def seed_data():
 
     seed_work_locations()
     seed_hazards()
-    seed_diseases()
     seed_users()
     import_employee_data()
     import_medical_data()
@@ -64,16 +63,6 @@ def seed_hazards():
     db.session.bulk_save_objects(hazards)
     db.session.commit()
     print("Seeded hazards table.")
-
-def seed_diseases():
-    diseases = [
-        Disease(disease_name="Silikosis"),
-        Disease(disease_name="Tinnitus"),
-        Disease(disease_name="Asma Kerja")
-    ]
-    db.session.bulk_save_objects(diseases)
-    db.session.commit()
-    print("Seeded diseases table.")
 
 def seed_users():
     users = [
