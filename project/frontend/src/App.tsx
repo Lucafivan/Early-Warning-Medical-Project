@@ -8,31 +8,33 @@ import EarlyWarningPage from './pages/EarlyWarningPage';
 import ReportPage from './pages/ReportPage';
 import NotFoundPage from './pages/NotFoundPage';
 import ProtectedRoute from './components/auth/ProtectedRoute';
+import { UIProvider } from './contexts/UIcontext'; 
 
 function App() {
   return (
-    <>
-    <Toaster position="top-center" reverseOrder={false} />
+    // 2. Bungkus semua rute dengan UIProvider
+    <UIProvider>
+      <Toaster position="top-center" reverseOrder={false} />
 
-    <Routes>
-      {/* Public route */}
-      <Route path="/" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
-      <Route path="/login" element={<LoginPage />} />
+      <Routes>
+        {/* Public route */}
+        <Route path="/" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/login" element={<LoginPage />} />
 
-      {/* Protected route */}
-      <Route element={<ProtectedRoute />}>
-        <Route element={<MainLayout />}>
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/early-warning" element={<EarlyWarningPage />} />
-          <Route path="/report" element={<ReportPage />} />
+        {/* Protected route */}
+        <Route element={<ProtectedRoute />}>
+          <Route element={<MainLayout />}>
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/early-warning" element={<EarlyWarningPage />} />
+            <Route path="/report" element={<ReportPage />} />
+          </Route>
         </Route>
-      </Route>
 
-      {/* Rute untuk halaman yang tidak ditemukan */}
-      <Route path="*" element={<NotFoundPage />} />
-    </Routes>
-    </>
+        {/* Rute untuk halaman yang tidak ditemukan */}
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
+    </UIProvider>
   );
 }
 
