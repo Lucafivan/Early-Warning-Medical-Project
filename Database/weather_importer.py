@@ -12,7 +12,7 @@ AQICN_TOKEN = os.environ.get('AQICN_TOKEN', 'db81fc42c61c3ed75bf2a98c285470286fc
 DB_CONFIG = {
     "dbname": "early_warning",
     "user": "postgres",
-    "password": "your_password", # <-- GANTI DENGAN PASSWORD ANDA
+    "password": "password", # <-- GANTI DENGAN PASSWORD ANDA
     "host": "localhost",
     "port": "5432"
 }
