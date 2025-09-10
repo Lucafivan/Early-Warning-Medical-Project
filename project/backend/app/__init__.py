@@ -44,8 +44,14 @@ def create_app():
         # Import dan daftarkan rute
         from .routes import main_bp, user_bp
         from .auth_routes import auth_bp
-        from . import models
         from .seeder import seed_data
+
+        try:
+            from .weather_updater import start_background_updater
+            if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
+                start_background_updater(app)
+        except Exception as e:
+            print(f"[WeatherUpdater] Failed to start background updater: {e}")
 
         @jwt.token_in_blocklist_loader
         def check_if_token_in_blocklist(jwt_header, jwt_payload):
@@ -61,6 +67,5 @@ def create_app():
             """Isi database dengan data dummy."""
             with app.app_context():
                 seed_data()
-                print("Database seeded successfully!")
 
     return app

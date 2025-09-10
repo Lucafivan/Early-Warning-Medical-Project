@@ -37,7 +37,7 @@ def seed_data():
     seed_users()
     import_employee_data()
     import_medical_data()
-    seed_weather_and_air_quality()
+    # seed_weather_and_air_quality()
     print("Database seeding completed!")
 
 def seed_work_locations():
