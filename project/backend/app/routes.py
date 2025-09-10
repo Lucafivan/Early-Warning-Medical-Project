@@ -70,6 +70,24 @@ def get_users():
         })
     return jsonify(output)
 
+@user_bp.route('/me', methods=['GET'])
+@jwt_required()
+def get_me():
+    current_user_email = get_jwt_identity()
+    user = User.query.filter_by(email=current_user_email).first()
+
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    return jsonify({
+        "id": user.id,
+        "username": user.username,
+        "email": user.email,
+        "role": user.role,
+        "created_at": user.created_at
+    }), 200
+
+
 @main_bp.route('/employees', methods=['GET'])
 def get_employees():
     employees = Employee.query.all()
