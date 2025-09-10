@@ -57,7 +57,7 @@ export interface AirQualityRow {
 export async function fetchLatestWeatherGlobal(): Promise<WeatherRow | null> {
     const { data } = await api.get<WeatherRow[]>("/weather");
     if (!Array.isArray(data) || data.length === 0) return null;
-    // ambil record dengan timestamp paling baru
+    // Ambil record dengan timestamp paling baru
     const sorted = [...data].sort((a, b) =>
         new Date(b.timestamp ?? 0).getTime() - new Date(a.timestamp ?? 0).getTime()
     );
