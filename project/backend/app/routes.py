@@ -7,6 +7,7 @@ from .models import (
 from flask import jsonify, request, Blueprint
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy import func
+from datetime import date
 
 main_bp = Blueprint('main_bp', __name__)
 user_bp = Blueprint("user", __name__)
@@ -223,6 +224,53 @@ def get_dashboard_weather():
         } if air_quality else None
     }
     return jsonify(result)
+
+@main_bp.route('/health_record', methods=['POST'])
+@jwt_required()
+def create_health_record():
+    current_user_email = get_jwt_identity()
+    user = User.query.filter_by(email=current_user_email).first()
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+
+    employee = Employee.query.filter_by(user_id=user.id).first()
+    if not employee:
+        return jsonify({'error': 'Employee not found'}), 404
+    
+    data = request.get_json()
+    record_type = data.get('record_type')
+    provider = data.get('provider')
+    disease_name = data.get('disease_name')
+
+    disease = Disease.query.filter_by(disease_name=disease_name).first()
+    if not disease:
+        disease = Disease(disease_name=disease_name)
+        db.session.add(disease)
+        db.session.flush()
+
+    last_record = HealthRecord.query.order_by(HealthRecord.id.desc()).first()
+    last_claims_id = last_record.claims_id if last_record and last_record.claims_id is not None else 0
+    claims_id = last_claims_id + 2
+
+    health_record = HealthRecord(
+        employee_id=employee.id,
+        disease_id=disease.id,
+        record_type=record_type,
+        record_date=date.today(),
+        claims_id=claims_id,
+        provider_name=provider,
+        due_total=None,
+        approve=None,
+        member_pay=None,
+        excess_paid=None,
+        excess_not_paid=None,
+        claim_status=None,
+        coverage_id=None
+    )
+    db.session.add(health_record)
+    db.session.commit()
+    return jsonify({'message': 'Health record created', 'id': health_record.id}), 201
+
 
 @user_bp.route('/me', methods=['PUT'])
 @jwt_required()
