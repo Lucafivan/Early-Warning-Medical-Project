@@ -8,7 +8,7 @@ from app.models import WorkLocation, Weather, AirQuality
 VISUAL_CROSSING_KEY = "4SD5JP775G8EFDF9T5HV7KF2B"
 AQICN_TOKEN = "db81fc42c61c3ed75bf2a98c285470286fc8da51"
 
-UPDATE_INTERVAL = 120
+UPDATE_INTERVAL = 15 * 60
 
 def update_weather_and_air_quality(app):
     with app.app_context():
