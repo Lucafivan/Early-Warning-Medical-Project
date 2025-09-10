@@ -1,5 +1,3 @@
-// src/contexts/UIContext.tsx
-
 import { createContext, useState, useContext, type ReactNode } from 'react';
 
 // Tipe untuk nilai yang akan disediakan oleh context

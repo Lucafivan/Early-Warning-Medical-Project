@@ -12,7 +12,7 @@ import { UIProvider } from './contexts/UIcontext';
 
 function App() {
   return (
-    // 2. Bungkus semua rute dengan UIProvider
+    // Bungkus semua rute dengan UIProvider
     <UIProvider>
       <Toaster position="top-center" reverseOrder={false} />
 
