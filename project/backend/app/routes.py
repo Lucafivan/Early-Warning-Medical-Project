@@ -223,23 +223,26 @@ def get_dashboard_weather():
     return jsonify(result)
 
 @main_bp.route('/health_record', methods=['POST'])
+@jwt_required()
 def create_health_record():
+    current_user_email = get_jwt_identity()
+    user = User.query.filter_by(email=current_user_email).first()
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+
+    employee = Employee.query.filter_by(user_id=user.id).first()
+    if not employee:
+        return jsonify({'error': 'Employee not found'}), 404
+    
     data = request.get_json()
     record_type = data.get('record_type')
     provider = data.get('provider')
-    principle_name = data.get('principle_name')
     disease_name = data.get('disease_name')
 
     disease = Disease.query.filter_by(disease_name=disease_name).first()
     if not disease:
         disease = Disease(disease_name=disease_name)
         db.session.add(disease)
-        db.session.flush()
-
-    employee = Employee.query.filter_by(full_name=principle_name).first()
-    if not employee:
-        employee = Employee(full_name=principle_name)
-        db.session.add(employee)
         db.session.flush()
 
     last_record = HealthRecord.query.order_by(HealthRecord.id.desc()).first()
