@@ -222,6 +222,10 @@ def get_dashboard_weather():
     }
     return jsonify(result)
 
+@main_bp.route('/early_warning', methods=['GET'])
+def get_early_warning():
+    return jsonify({'message': 'Early warning endpoint under construction'}), 501
+
 @main_bp.route('/health_record', methods=['POST'])
 @jwt_required()
 def create_health_record():
@@ -234,11 +238,6 @@ def create_health_record():
     if not employee:
         return jsonify({'error': 'Employee not found'}), 404
     
-    data = request.get_json()
-    record_type = data.get('record_type')
-    provider = data.get('provider')
-    disease_name = data.get('disease_name')
-
     disease = Disease.query.filter_by(disease_name=disease_name).first()
     if not disease:
         disease = Disease(disease_name=disease_name)
@@ -248,6 +247,11 @@ def create_health_record():
     last_record = HealthRecord.query.order_by(HealthRecord.id.desc()).first()
     last_claims_id = last_record.claims_id if last_record and last_record.claims_id is not None else 0
     claims_id = last_claims_id + 2
+
+    data = request.get_json()
+    record_type = data.get('record_type')
+    provider = data.get('provider')
+    disease_name = data.get('disease_name')
 
     health_record = HealthRecord(
         employee_id=employee.id,
@@ -267,7 +271,6 @@ def create_health_record():
     db.session.add(health_record)
     db.session.commit()
     return jsonify({'message': 'Health record created', 'id': health_record.id}), 201
-
 
 @user_bp.route('/me', methods=['PUT'])
 @jwt_required()
@@ -312,4 +315,3 @@ def update_me():
             "created_at": user.created_at
         }
     }), 200
-
