@@ -206,6 +206,9 @@ def get_dashboard_weather():
     air_quality = AirQuality.query.filter_by(work_location_id=work_location_id).order_by(AirQuality.timestamp.desc()).first()
 
     result = {
+        'work_location': {
+            'id': work_location_id,
+        },
         'weather': {
             'temperature': weather.temperature if weather else None,
             'humidity': weather.humidity if weather else None,
