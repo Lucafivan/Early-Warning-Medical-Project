@@ -7,7 +7,7 @@ from .models import (
 from flask import jsonify, request, Blueprint
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy import func
-from datetime import date
+from datetime import datetime
 
 main_bp = Blueprint('main_bp', __name__)
 user_bp = Blueprint("user", __name__)
@@ -220,7 +220,61 @@ def get_dashboard_weather():
 
 @main_bp.route('/early_warning', methods=['GET'])
 def get_early_warning():
-    return jsonify({'message': 'Early warning endpoint under construction'}), 501
+    locations = WorkLocation.query.all()
+    result = []
+    for loc in locations:
+        weather = Weather.query.filter_by(work_location_id=loc.id).order_by(Weather.timestamp.desc()).first()
+        air_quality = AirQuality.query.filter_by(work_location_id=loc.id).order_by(AirQuality.timestamp.desc()).first()
+
+        max_temp = weather.max_temperature if weather else None
+        avg_temp = weather.average_temperature if weather else None
+        weather_con = weather.weather_condition if weather else None
+        air_qual = air_quality.air_quality_index if air_quality else None
+
+        def temp_status(val, batas1, batas2):
+            if val is None:
+                return None
+            if val <= batas1:
+                return 'aman'
+            elif val <= batas2:
+                return 'waspada'
+            else:
+                return 'bahaya'
+
+        def air_status(val):
+            if val is None:
+                return None
+            if val < 100:
+                return 'aman'
+            elif val <= 120:
+                return 'waspada'
+            else:
+                return 'bahaya'
+
+        def weather_high_risk(con):
+            if not con:
+                return None
+            con = con.lower()
+            if con == 'partially cloudy':
+                return 66
+            elif 'rain' in con and 'partially cloudy' in con:
+                return 50
+            elif 'rain' in con:
+                return 50
+            return 0
+
+        result.append({
+            'location_name': loc.location_name,
+            'max_temperature': max_temp,
+            'max_temp_status': temp_status(max_temp, 32, 34),
+            'average_temperature': avg_temp,
+            'avg_temp_status': temp_status(avg_temp, 28, 29),
+            'weather_condition': weather_con,
+            'weather_high_risk_percent': weather_high_risk(weather_con),
+            'air_quality_index': air_qual,
+            'air_quality_status': air_status(air_qual)
+        })
+    return jsonify(result)
 
 @main_bp.route('/health_record', methods=['POST'])
 @jwt_required()
@@ -233,12 +287,6 @@ def create_health_record():
     employee = Employee.query.filter_by(user_id=user.id).first()
     if not employee:
         return jsonify({'error': 'Employee not found'}), 404
-    
-    disease = Disease.query.filter_by(disease_name=disease_name).first()
-    if not disease:
-        disease = Disease(disease_name=disease_name)
-        db.session.add(disease)
-        db.session.flush()
 
     last_record = HealthRecord.query.order_by(HealthRecord.id.desc()).first()
     last_claims_id = last_record.claims_id if last_record and last_record.claims_id is not None else 0
@@ -247,18 +295,34 @@ def create_health_record():
     data = request.get_json()
     provider = data.get('provider')
     disease_name = data.get('disease_name')
+    admission_date_str = data.get('admission_date')
+    duration_stay = data.get('duration_stay')
+    
+    disease = Disease.query.filter_by(disease_name=disease_name).first()
+    if not disease:
+        disease = Disease(disease_name=disease_name)
+        db.session.add(disease)
+        db.session.flush()
+    
+    if admission_date_str:  
+        try:
+            admission_date = datetime.strptime(admission_date_str, "%Y-%m-%d").date()
+        except ValueError:
+            return jsonify({'error': 'Invalid date format, use YYYY-MM-DD'}), 400
+    else:  
+        admission_date = None
 
     health_record = HealthRecord(
         employee_id=employee.id,
         disease_id=disease.id,
         claims_id=claims_id,
-        admission_date=date.today(),
+        admission_date=admission_date,
         provider_name=provider,
         due_total=None,
         approve=None,
         member_pay=None,
         status=None,
-        duration_stay=None,
+        duration_stay=duration_stay,
         daily_cases=None,
         high_risk=None
     )
