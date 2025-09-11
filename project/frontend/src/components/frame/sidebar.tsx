@@ -32,7 +32,7 @@ function Sidebar() {
   };
 
   return (
-    // Shell kecil agar konten tidak geser
+    // Shell kecil agar konten tidak bergeser
     <aside
       onMouseEnter={() => setExpanded(true)}
       className="relative w-16 p-0 h-screen text-gray-100"

@@ -45,7 +45,7 @@ const DashboardPage: React.FC = () => {
 
   return (
     <div className="space-y-4">
-      {/* Heading besar di luar card Top 10 Diseases */}
+      {/* Heading di luar card Top 10 Diseases */}
       <h1 className="text-2xl sm:text-3xl font-bold max-w-2xl">
         Hello, {displayName}
       </h1>
