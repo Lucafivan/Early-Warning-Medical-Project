@@ -180,6 +180,59 @@ def get_dashboard_top_diseases():
     ]
     return jsonify(output)
 
+@main_bp.route('/dashboard_top_diseases_by_division', methods=['GET'])
+def get_dashboard_top_diseases_by_division():
+    try:
+        limit = int(request.args.get('limit', 5))
+        if limit < 1:
+            limit = 1
+        elif limit > 50:
+            limit = 50
+    except (ValueError, TypeError):
+        limit = 5
+
+    results = (
+        db.session.query(
+            EmployeeAssignment.division,
+            HealthRecord.disease_id,
+            func.count(HealthRecord.id).label('count'),
+            Disease.disease_name
+        )
+        .join(Employee, Employee.id == EmployeeAssignment.employee_id)
+        .join(HealthRecord, HealthRecord.employee_id == Employee.id)
+        .join(Disease, HealthRecord.disease_id == Disease.id)
+        .group_by(EmployeeAssignment.division, HealthRecord.disease_id, Disease.disease_name)
+        .order_by(EmployeeAssignment.division, func.count(HealthRecord.id).desc())
+        .all()
+    )
+
+    from collections import defaultdict
+    division_dict = defaultdict(list)
+    for r in results:
+        division_dict[r.division].append({
+            'disease_id': r.disease_id,
+            'disease_name': r.disease_name,
+            'count': r.count
+        })
+
+    output = []
+    for division, diseases in division_dict.items():
+        output.append({
+            'division': division,
+            'top_diseases': diseases[:limit]
+        })
+    return jsonify(output)
+
+@main_bp.route('/divisions', methods=['GET'])
+def get_divisions():
+    divisions = db.session.query(EmployeeAssignment.division).distinct().all()
+    output = []
+    for div in divisions:
+        output.append({
+            'division': div.division
+        })
+    return jsonify(output)
+
 @main_bp.route('/dashboard_weather', methods=['GET'])
 @jwt_required()
 def get_dashboard_weather():
