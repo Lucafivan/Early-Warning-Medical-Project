@@ -7,7 +7,7 @@ from .models import (
 from flask import jsonify, request, Blueprint
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy import func
-from datetime import date
+from datetime import datetime
 
 main_bp = Blueprint('main_bp', __name__)
 user_bp = Blueprint("user", __name__)
@@ -233,12 +233,6 @@ def create_health_record():
     employee = Employee.query.filter_by(user_id=user.id).first()
     if not employee:
         return jsonify({'error': 'Employee not found'}), 404
-    
-    disease = Disease.query.filter_by(disease_name=disease_name).first()
-    if not disease:
-        disease = Disease(disease_name=disease_name)
-        db.session.add(disease)
-        db.session.flush()
 
     last_record = HealthRecord.query.order_by(HealthRecord.id.desc()).first()
     last_claims_id = last_record.claims_id if last_record and last_record.claims_id is not None else 0
@@ -247,18 +241,34 @@ def create_health_record():
     data = request.get_json()
     provider = data.get('provider')
     disease_name = data.get('disease_name')
+    admission_date_str = data.get('admission_date')
+    duration_stay = data.get('duration_stay')
+    
+    disease = Disease.query.filter_by(disease_name=disease_name).first()
+    if not disease:
+        disease = Disease(disease_name=disease_name)
+        db.session.add(disease)
+        db.session.flush()
+    
+    if admission_date_str:  
+        try:
+            admission_date = datetime.strptime(admission_date_str, "%Y-%m-%d").date()
+        except ValueError:
+            return jsonify({'error': 'Invalid date format, use YYYY-MM-DD'}), 400
+    else:  
+        admission_date = None
 
     health_record = HealthRecord(
         employee_id=employee.id,
         disease_id=disease.id,
         claims_id=claims_id,
-        admission_date=date.today(),
+        admission_date=admission_date,
         provider_name=provider,
         due_total=None,
         approve=None,
         member_pay=None,
         status=None,
-        duration_stay=None,
+        duration_stay=duration_stay,
         daily_cases=None,
         high_risk=None
     )
