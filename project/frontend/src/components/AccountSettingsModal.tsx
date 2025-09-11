@@ -14,7 +14,7 @@ const AccountSettingsModal: React.FC<Props> = ({ isOpen, onClose }) => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  const { setUser } = useAuth(); // ✅ ambil setUser dari context
+  const { setUser } = useAuth(); // Ambil setUser dari context
 
   if (!isOpen) return null;
 

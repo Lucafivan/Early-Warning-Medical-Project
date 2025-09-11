@@ -9,7 +9,6 @@ function Navbar() {
         <div className="flex items-center h-full">
           <img src={spilLogo} alt="SPIL Logo" className="h-7 object-contain" />
         </div>
-
         {/* User info kanan */}
         <Navprofile />
       </header>

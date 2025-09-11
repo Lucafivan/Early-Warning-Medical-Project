@@ -180,6 +180,59 @@ def get_dashboard_top_diseases():
     ]
     return jsonify(output)
 
+@main_bp.route('/dashboard_top_diseases_by_division', methods=['GET'])
+def get_dashboard_top_diseases_by_division():
+    try:
+        limit = int(request.args.get('limit', 5))
+        if limit < 1:
+            limit = 1
+        elif limit > 50:
+            limit = 50
+    except (ValueError, TypeError):
+        limit = 5
+
+    results = (
+        db.session.query(
+            EmployeeAssignment.division,
+            HealthRecord.disease_id,
+            func.count(HealthRecord.id).label('count'),
+            Disease.disease_name
+        )
+        .join(Employee, Employee.id == EmployeeAssignment.employee_id)
+        .join(HealthRecord, HealthRecord.employee_id == Employee.id)
+        .join(Disease, HealthRecord.disease_id == Disease.id)
+        .group_by(EmployeeAssignment.division, HealthRecord.disease_id, Disease.disease_name)
+        .order_by(EmployeeAssignment.division, func.count(HealthRecord.id).desc())
+        .all()
+    )
+
+    from collections import defaultdict
+    division_dict = defaultdict(list)
+    for r in results:
+        division_dict[r.division].append({
+            'disease_id': r.disease_id,
+            'disease_name': r.disease_name,
+            'count': r.count
+        })
+
+    output = []
+    for division, diseases in division_dict.items():
+        output.append({
+            'division': division,
+            'top_diseases': diseases[:limit]
+        })
+    return jsonify(output)
+
+@main_bp.route('/divisions', methods=['GET'])
+def get_divisions():
+    divisions = db.session.query(EmployeeAssignment.division).distinct().all()
+    output = []
+    for div in divisions:
+        output.append({
+            'division': div.division
+        })
+    return jsonify(output)
+
 @main_bp.route('/dashboard_weather', methods=['GET'])
 @jwt_required()
 def get_dashboard_weather():
@@ -220,7 +273,61 @@ def get_dashboard_weather():
 
 @main_bp.route('/early_warning', methods=['GET'])
 def get_early_warning():
-    return jsonify({'message': 'Early warning endpoint under construction'}), 501
+    locations = WorkLocation.query.all()
+    result = []
+    for loc in locations:
+        weather = Weather.query.filter_by(work_location_id=loc.id).order_by(Weather.timestamp.desc()).first()
+        air_quality = AirQuality.query.filter_by(work_location_id=loc.id).order_by(AirQuality.timestamp.desc()).first()
+
+        max_temp = weather.max_temperature if weather else None
+        avg_temp = weather.average_temperature if weather else None
+        weather_con = weather.weather_condition if weather else None
+        air_qual = air_quality.air_quality_index if air_quality else None
+
+        def temp_status(val, batas1, batas2):
+            if val is None:
+                return None
+            if val <= batas1:
+                return 'aman'
+            elif val <= batas2:
+                return 'waspada'
+            else:
+                return 'bahaya'
+
+        def air_status(val):
+            if val is None:
+                return None
+            if val < 100:
+                return 'aman'
+            elif val <= 120:
+                return 'waspada'
+            else:
+                return 'bahaya'
+
+        def weather_high_risk(con):
+            if not con:
+                return None
+            con = con.lower()
+            if con == 'partially cloudy':
+                return 66
+            elif 'rain' in con and 'partially cloudy' in con:
+                return 50
+            elif 'rain' in con:
+                return 50
+            return 0
+
+        result.append({
+            'location_name': loc.location_name,
+            'max_temperature': max_temp,
+            'max_temp_status': temp_status(max_temp, 32, 34),
+            'average_temperature': avg_temp,
+            'avg_temp_status': temp_status(avg_temp, 28, 29),
+            'weather_condition': weather_con,
+            'weather_high_risk_percent': weather_high_risk(weather_con),
+            'air_quality_index': air_qual,
+            'air_quality_status': air_status(air_qual)
+        })
+    return jsonify(result)
 
 @main_bp.route('/health_record', methods=['POST'])
 @jwt_required()
