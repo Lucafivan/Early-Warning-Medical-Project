@@ -1,5 +1,3 @@
-// src/pages/ReportPage.tsx
-
 import React, { useState } from "react";
 import axios from "axios";
 import { Input } from "../components/ui/Input";
@@ -109,7 +107,7 @@ const ReportPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-bold max-w-2xl mx-auto">Report Form</h1>
+      <h1 className="text-2xl sm:text-3xl font-bold max-w-2xl mx-auto">Report Form</h1>
 
       <form
         onSubmit={handleSubmit}
