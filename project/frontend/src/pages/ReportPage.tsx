@@ -10,6 +10,7 @@ const ReportPage: React.FC = () => {
     provider: "",
     principleName: "",
     admissionDate: "",
+    duration_stay: "",
     dischargeDate: "",
     diagnosisDesc: "",
     memberType: "",
@@ -27,73 +28,84 @@ const ReportPage: React.FC = () => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // 1. Cek token terlebih dahulu
-    const token = localStorage.getItem("access_token"); // Pastikan key-nya benar! (access_token atau token)
-    if (!token) {
-        alert("Sesi Anda telah berakhir. Silakan login kembali.");
-        // Anda bisa Arahkan ke halaman login di sini jika perlu
-        // navigate('/login');
-        return;
+  e.preventDefault();
+
+  const token = localStorage.getItem("access_token");
+  if (!token) {
+    alert("Sesi Anda telah berakhir. Silakan login kembali.");
+    return;
+  }
+
+  const newErrors: { [key: string]: boolean } = {};
+  if (!formData.provider.trim()) newErrors.provider = true;
+  if (!formData.diagnosisDesc.trim()) newErrors.diagnosisDesc = true;
+  if (!formData.admissionDate) newErrors.admissionDate = true;
+  if (!formData.dischargeDate) newErrors.dischargeDate = true;
+
+  if (Object.keys(newErrors).length > 0) {
+    setErrors(newErrors);
+    alert("Harap isi semua field wajib (Provider, Diagnosis, Admission, Discharge).");
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    //  Hitung duration_stay = antara discharge - admission
+    let duration_stay = "";
+    if (formData.admissionDate && formData.dischargeDate) {
+      const admission = new Date(formData.admissionDate);
+      const discharge = new Date(formData.dischargeDate);
+
+      // Selisih milidetik -> hari
+      const diffTime = discharge.getTime() - admission.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      duration_stay = diffDays.toString();
     }
 
-    // 2. Validasi FE yang lebih ketat
-    const newErrors: { [key: string]: boolean } = {};
-    // Gunakan .trim() untuk menghapus spasi di awal/akhir dan cek apakah hasilnya kosong
-    if (!formData.provider.trim()) newErrors.provider = true;
-    if (!formData.diagnosisDesc.trim()) newErrors.diagnosisDesc = true;
+    const payload = {
+      provider: formData.provider.trim(),
+      disease_name: formData.diagnosisDesc.trim(),
+      admission_date: formData.admissionDate,
+      duration_stay: duration_stay, 
+    };
 
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      alert("Harap isi semua field yang wajib diisi (Provider dan Diagnosis).");
-      return;
-    }
-
-    setLoading(true); // Mulai loading
-
-    try {
-      const payload = {
-        record_type: "inpatient",
-        provider: formData.provider.trim(), // Kirim data yang sudah di-trim
-        disease_name: formData.diagnosisDesc.trim(), // Kirim data yang sudah di-trim
-      };
-
-      const res = await axios.post(
-        "http://localhost:5000/health_record",
-        payload,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      console.log("Sukses simpan:", res.data);
-      alert("Berhasil simpan health record!");
-      // Reset form jika perlu
-      setFormData({
-        provider: "",
-        principleName: "",
-        admissionDate: "",
-        dischargeDate: "",
-        diagnosisDesc: "",
-        memberType: "",
-      });
-
-    } catch (err) {
-      console.error("Gagal simpan health record:", err);
-       // Tampilkan pesan error spesifik dari backend jika ada
-      if (axios.isAxiosError(err) && err.response) {
-        alert(`Gagal menyimpan: ${err.response.data.error || 'Terjadi kesalahan pada server'}`);
-      } else {
-        alert("Gagal menyimpan data. Terjadi kesalahan yang tidak diketahui.");
+    const res = await axios.post(
+      "http://localhost:5000/health_record",
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       }
-    } finally {
-      // 3. Pastikan loading selalu berhenti
-      setLoading(false); 
+    );
+
+    console.log("Sukses simpan:", res.data);
+    alert("Berhasil simpan health record!");
+
+    setFormData({
+      provider: "",
+      principleName: "",
+      admissionDate: "",
+      duration_stay: "",
+      dischargeDate: "",
+      diagnosisDesc: "",
+      memberType: "",
+    });
+
+  } catch (err) {
+    console.error("Gagal simpan health record:", err);
+    if (axios.isAxiosError(err) && err.response) {
+      alert(`Gagal menyimpan: ${err.response.data.error || "Terjadi kesalahan pada server"}`);
+    } else {
+      alert("Gagal menyimpan data. Terjadi kesalahan yang tidak diketahui.");
     }
-  };
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <div className="space-y-6">
