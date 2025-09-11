@@ -29,18 +29,21 @@ def update_weather_and_air_quality(app):
                     if day:
                         existing_weather = Weather.query.filter(
                             Weather.work_location_id == loc.id,
+                            db.func.date(Weather.timestamp) == today
                         ).first()
                         if existing_weather:
-                            existing_weather.temperature = day.get('temp', None)
-                            existing_weather.humidity = day.get('humidity', None)
-                            existing_weather.wind_speed = day.get('windspeed', None)
+                            existing_weather.min_temperature = day.get('tempmin', None)
+                            existing_weather.max_temperature = day.get('tempmax', None)
+                            existing_weather.average_temperature = day.get('temp', None)
+                            existing_weather.weather_condition = day.get('conditions', None)
                             existing_weather.timestamp = datetime.now()
                         else:
                             weather = Weather(
                                 work_location_id=loc.id,
-                                temperature=day.get('temp', None),
-                                humidity=day.get('humidity', None),
-                                wind_speed=day.get('windspeed', None),
+                                min_temperature=day.get('tempmin', None),
+                                max_temperature=day.get('tempmax', None),
+                                average_temperature=day.get('temp', None),
+                                weather_condition=day.get('conditions', None),
                                 timestamp=datetime.now()
                             )
                             db.session.add(weather)
@@ -53,23 +56,18 @@ def update_weather_and_air_quality(app):
                     aqresp.raise_for_status()
                     aqjson = aqresp.json()
                     if aqjson.get('status') == 'ok':
-                        iaqi = aqjson['data'].get('iaqi', {})
                         existing_aq = AirQuality.query.filter(
                             AirQuality.work_location_id == loc.id,
+                            db.func.date(AirQuality.timestamp) == today
                         ).first()
+                        aqi_value = aqjson['data'].get('aqi', None)
                         if existing_aq:
-                            existing_aq.aqi = aqjson['data'].get('aqi', None)
-                            existing_aq.pm25 = iaqi.get('pm25', {}).get('v', None)
-                            existing_aq.pm10 = iaqi.get('pm10', {}).get('v', None)
-                            existing_aq.co_level = iaqi.get('co', {}).get('v', None)
+                            existing_aq.air_quality_index = aqi_value
                             existing_aq.timestamp = datetime.now()
                         else:
                             air_quality = AirQuality(
                                 work_location_id=loc.id,
-                                aqi=aqjson['data'].get('aqi', None),
-                                pm25=iaqi.get('pm25', {}).get('v', None),
-                                pm10=iaqi.get('pm10', {}).get('v', None),
-                                co_level=iaqi.get('co', {}).get('v', None),
+                                air_quality_index=aqi_value,
                                 timestamp=datetime.now()
                             )
                             db.session.add(air_quality)

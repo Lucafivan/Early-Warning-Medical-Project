@@ -1,13 +1,13 @@
 from . import db, bcrypt
 from datetime import datetime
+from sqlalchemy import UniqueConstraint
 
 class WorkLocation(db.Model):
     __tablename__ = 'work_locations'
     id = db.Column(db.Integer, primary_key=True)
     location_name = db.Column(db.String(150), nullable=False, unique=True)
-    city = db.Column(db.String(100), nullable=False)
-    latitude = db.Column(db.Numeric(9, 6))
-    longitude = db.Column(db.Numeric(9, 6))
+    latitude = db.Column(db.Numeric(18, 15))
+    longitude = db.Column(db.Numeric(18, 15))
 
 class Hazard(db.Model):
     __tablename__ = 'hazards'
@@ -15,7 +15,6 @@ class Hazard(db.Model):
     hazard_name = db.Column(db.String(150), nullable=False)
     hazard_type = db.Column(db.String(50))
     description = db.Column(db.Text)
-    exposure_limit = db.Column(db.Numeric)
 
 class Disease(db.Model):
     __tablename__ = 'diseases'
@@ -47,44 +46,45 @@ class EmployeeAssignment(db.Model):
     __tablename__ = 'employee_assignments'
     id = db.Column(db.Integer, primary_key=True)
     employee_id = db.Column(db.Integer, db.ForeignKey('employees.id', ondelete='CASCADE'), nullable=False)
-    work_location_id = db.Column(db.Integer, db.ForeignKey('work_locations.id'), nullable=False)
+    work_location_id = db.Column(db.Integer, db.ForeignKey('work_locations.id'))
     department = db.Column(db.String(100))
     division = db.Column(db.String(100))
     position = db.Column(db.String(100))
     level = db.Column(db.String(50))
+
+    __table_args__ = (
+        UniqueConstraint('employee_id', 'work_location_id', 'department', 'division', 'position', 'level', name='uq_employee_assignment'),
+    )
 
 class HealthRecord(db.Model):
     __tablename__ = 'health_records'
     id = db.Column(db.Integer, primary_key=True)
     employee_id = db.Column(db.Integer, db.ForeignKey('employees.id', ondelete='CASCADE'), nullable=False)
     disease_id = db.Column(db.Integer, db.ForeignKey('diseases.id'))
-    record_type = db.Column(db.String(50))
-    record_date = db.Column(db.Date)
     claims_id = db.Column(db.BigInteger)
+    admission_date = db.Column(db.Date)
     provider_name = db.Column(db.String(255))
     due_total = db.Column(db.Numeric)
     approve = db.Column(db.Numeric)
     member_pay = db.Column(db.Numeric)
-    excess_paid = db.Column(db.Numeric)
-    excess_not_paid = db.Column(db.Numeric)
-    claim_status = db.Column(db.String(50))
-    coverage_id = db.Column(db.String(20))
+    status = db.Column(db.String(50))
+    duration_stay = db.Column(db.Integer)
+    daily_cases = db.Column(db.Integer)
+    high_risk = db.Column(db.Integer)
 
 class Weather(db.Model):
     __tablename__ = 'weather'
     id = db.Column(db.Integer, primary_key=True)
     work_location_id = db.Column(db.Integer, db.ForeignKey('work_locations.id'), nullable=False)
-    temperature = db.Column(db.Float)
-    humidity = db.Column(db.Float)
-    wind_speed = db.Column(db.Float)
+    min_temperature = db.Column(db.Float)
+    max_temperature = db.Column(db.Float)
+    average_temperature = db.Column(db.Float)
+    weather_condition = db.Column(db.String(100))
     timestamp = db.Column(db.DateTime, default=datetime.now, nullable=False)
 
 class AirQuality(db.Model):
     __tablename__ = 'air_quality'
     id = db.Column(db.Integer, primary_key=True)
     work_location_id = db.Column(db.Integer, db.ForeignKey('work_locations.id'), nullable=False)
-    aqi = db.Column(db.Float)
-    pm25 = db.Column(db.Float)
-    pm10 = db.Column(db.Float)
-    co_level = db.Column(db.Float)
+    air_quality_index = db.Column(db.Integer)
     timestamp = db.Column(db.DateTime, default=datetime.now, nullable=False)

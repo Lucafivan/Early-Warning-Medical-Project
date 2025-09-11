@@ -23,10 +23,9 @@ def get_locations():
     for loc in locations:
         output.append({
             'id': loc.id,
-            'name': loc.location_name,
-            'city': loc.city,
-            'latitude': loc.latitude,
-            'longitude': loc.longitude
+            'location_name': loc.location_name,
+            'latitude': float(loc.latitude) if loc.latitude is not None else None,
+            'longitude': float(loc.longitude) if loc.longitude is not None else None
         })
     return jsonify(output)
 
@@ -39,8 +38,7 @@ def get_hazards():
             'id': haz.id,
             'hazard_name': haz.hazard_name,
             'hazard_type': haz.hazard_type,
-            'description': haz.description,
-            'exposure_limit': haz.exposure_limit
+            'description': haz.description
         })
     return jsonify(output)
 
@@ -107,17 +105,16 @@ def get_health_records():
             'id': hr.id,
             'employee_id': hr.employee_id,
             'disease_id': hr.disease_id,
-            'record_type': hr.record_type,
-            'record_date': hr.record_date,
             'claims_id': hr.claims_id,
+            'admission_date': hr.admission_date,
             'provider_name': hr.provider_name,
             'due_total': hr.due_total,
             'approve': hr.approve,
             'member_pay': hr.member_pay,
-            'excess_paid': hr.excess_paid,
-            'excess_not_paid': hr.excess_not_paid,
-            'claim_status': hr.claim_status,
-            'coverage_id': hr.coverage_id
+            'status': hr.status,
+            'duration_stay': hr.duration_stay,
+            'daily_cases': hr.daily_cases,
+            'high_risk': hr.high_risk
         })
     return jsonify(output)
 
@@ -129,9 +126,10 @@ def get_weather():
         output.append({
             'id': weather.id,
             'work_location_id': weather.work_location_id,
-            'temperature': weather.temperature,
-            'humidity': weather.humidity,
-            'wind_speed': weather.wind_speed,
+            'min_temperature': weather.min_temperature,
+            'max_temperature': weather.max_temperature,
+            'average_temperature': weather.average_temperature,
+            'weather_condition': weather.weather_condition,
             'timestamp': weather.timestamp
         })
     return jsonify(output)
@@ -144,10 +142,7 @@ def get_air_quality():
         output.append({
             'id': aq.id,
             'work_location_id': aq.work_location_id,
-            'aqi': aq.aqi,
-            'pm25': aq.pm25,
-            'pm10': aq.pm10,
-            'co_level': aq.co_level,
+            'air_quality_index': aq.air_quality_index,
             'timestamp': aq.timestamp
         })
     return jsonify(output)
@@ -210,16 +205,14 @@ def get_dashboard_weather():
             'id': work_location_id,
         },
         'weather': {
-            'temperature': weather.temperature if weather else None,
-            'humidity': weather.humidity if weather else None,
-            'wind_speed': weather.wind_speed if weather else None,
+            'min_temperature': weather.min_temperature if weather else None,
+            'max_temperature': weather.max_temperature if weather else None,
+            'average_temperature': weather.average_temperature if weather else None,
+            'weather_condition': weather.weather_condition if weather else None,
             'timestamp': weather.timestamp if weather else None
         } if weather else None,
         'air_quality': {
-            'aqi': air_quality.aqi if air_quality else None,
-            'pm25': air_quality.pm25 if air_quality else None,
-            'pm10': air_quality.pm10 if air_quality else None,
-            'co_level': air_quality.co_level if air_quality else None,
+            'air_quality_index': air_quality.air_quality_index if air_quality else None,
             'timestamp': air_quality.timestamp if air_quality else None
         } if air_quality else None
     }
@@ -252,24 +245,22 @@ def create_health_record():
     claims_id = last_claims_id + 2
 
     data = request.get_json()
-    record_type = data.get('record_type')
     provider = data.get('provider')
     disease_name = data.get('disease_name')
 
     health_record = HealthRecord(
         employee_id=employee.id,
         disease_id=disease.id,
-        record_type=record_type,
-        record_date=date.today(),
         claims_id=claims_id,
+        admission_date=date.today(),
         provider_name=provider,
         due_total=None,
         approve=None,
         member_pay=None,
-        excess_paid=None,
-        excess_not_paid=None,
-        claim_status=None,
-        coverage_id=None
+        status=None,
+        duration_stay=None,
+        daily_cases=None,
+        high_risk=None
     )
     db.session.add(health_record)
     db.session.commit()
