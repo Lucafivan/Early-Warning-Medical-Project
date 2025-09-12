@@ -93,8 +93,8 @@ const EarlyWarningPage: React.FC = () => {
       try {
         const data = await fetchEarlyWarning();
         if (mounted) setRows(data);
-      } catch (e: any) {
-        if (mounted) setErr(e?.message ?? "Gagal memuat data");
+      } catch (e: unknown) {
+        if (mounted) setErr(e instanceof Error ? e.message : "Gagal memuat data");
       } finally {
         if (mounted) setLoading(false);
       }
