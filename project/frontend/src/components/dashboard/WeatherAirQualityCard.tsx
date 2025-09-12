@@ -19,13 +19,17 @@ function formatDate(ts?: string | null) {
 }
 
 function aqiCategory(aqi: number | null | undefined) {
-  if (aqi == null) return { label: "Unknown", badge: "bg-gray-400" };
-  if (aqi <= 50) return { label: "Good", badge: "bg-green-500" };
-  if (aqi <= 100) return { label: "Moderate", badge: "bg-yellow-500" };
-  if (aqi <= 150) return { label: "Unhealthy (SG)", badge: "bg-orange-500" };
-  if (aqi <= 200) return { label: "Unhealthy", badge: "bg-red-500" };
-  if (aqi <= 300) return { label: "Very Unhealthy", badge: "bg-purple-600" };
-  return { label: "Hazardous", badge: "bg-rose-700" };
+  if (aqi == null || isNaN(aqi)) {
+    return { label: "Tidak Diketahui", badge: "bg-gray-300" };
+  }
+
+  if (aqi < 100) {
+    return { label: "Aman", badge: "bg-green-500" };
+  } else if (aqi <= 120) {
+    return { label: "Waspada", badge: "bg-amber-500" };
+  } else {
+    return { label: "Bahaya", badge: "bg-red-500" };
+  }
 }
 
 interface Props {
@@ -224,7 +228,6 @@ const WeatherAirQualityCard: React.FC<Props> = ({ height }) => {
                 <span className="text-xs text-gray-600">({cat.label})</span>
               </div>
             </div>
-            {/* PM2.5/PM10/CO dihapus karena backend baru tidak menyediakan */}
           </div>
 
           <div className="mt-3 pt-2 text-xs text-gray-500">

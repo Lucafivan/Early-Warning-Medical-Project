@@ -91,3 +91,41 @@ export async function fetchWorkLocations(): Promise<WorkLocation[]> {
   const { data } = await api.get<WorkLocation[]>("/work_locations");
   return data;
 }
+
+// ===== Divisions & Top Diseases by Division =====
+export interface DivisionItem {
+  division: string | null;
+}
+
+export interface DivisionTopDisease {
+  disease_id: number;
+  disease_name: string;
+  count: number;
+}
+
+export interface DivisionBucket {
+  division: string | null;
+  top_diseases: DivisionTopDisease[];
+}
+
+/** GET /divisions -> array of { division } */
+export async function fetchDivisions(): Promise<string[]> {
+  const { data } = await api.get<DivisionItem[]>("/divisions");
+  // ambil hanya yang ada nilainya dan unik
+  const uniq = Array.from(
+    new Set(
+      (data ?? [])
+        .map(d => (d?.division ?? "").trim())
+        .filter(Boolean)
+    )
+  );
+  return uniq;
+}
+
+/** GET /dashboard_top_diseases_by_division?limit=5 -> array bucket */
+export async function fetchTopDiseasesByDivision(limit = 5): Promise<DivisionBucket[]> {
+  const { data } = await api.get<DivisionBucket[]>("/dashboard_top_diseases_by_division", {
+    params: { limit },
+  });
+  return Array.isArray(data) ? data : [];
+}

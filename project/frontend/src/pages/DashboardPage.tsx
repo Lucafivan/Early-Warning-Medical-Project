@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 import TopDiseasesChart from "../components/dashboard/TopDiseasesChart";
+import TopDiseasesByDivisionChart from "../components/dashboard/TopDiseasesByDivisionChart";
 import WeatherAirQualityCard from "../components/dashboard/WeatherAirQualityCard";
 
 interface User {
@@ -51,10 +52,11 @@ const DashboardPage: React.FC = () => {
 
       <div className="grid gap-6 grid-cols-1 xl:grid-cols-[1fr_1fr_1.4fr]">
         <TopDiseasesChart limit={10} height={280} />
+        <TopDiseasesByDivisionChart limit={5} height={320} />
         <WeatherAirQualityCard />
       </div>
     </div>
   );
-};
+}
 
 export default DashboardPage;
