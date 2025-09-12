@@ -53,6 +53,26 @@ def get_diseases():
         })
     return jsonify(output)
 
+@main_bp.route('/diseases/search', methods=['GET'])
+def search_diseases():
+    search_query = request.args.get('q', '')
+
+    if not search_query:
+        return jsonify([])
+
+    diseases = Disease.query.filter(
+        Disease.disease_name.ilike(f'%{search_query}%')
+    ).limit(10).all()
+
+    output = []
+    for disease in diseases:
+        output.append({
+            'id': disease.id,
+            'disease_name': disease.disease_name
+        })
+        
+    return jsonify(output)
+
 @main_bp.route('/users', methods=['GET'])
 @jwt_required()
 def get_users():

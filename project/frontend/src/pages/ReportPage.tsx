@@ -1,108 +1,103 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { Input } from "../components/ui/Input";
 import { Button } from "../components/ui/Button";
 import toast from "react-hot-toast";
 
+// bUAT SARAN penyakit 
+interface DiseaseSuggestion {
+  id: number;
+  disease_name: string;
+}
+
 const ReportPage: React.FC = () => {
   const [formData, setFormData] = useState({
     provider: "",
-    principleName: "",
     admissionDate: "",
-    duration_stay: "",
     dischargeDate: "",
-    diagnosisDesc: "",
-    memberType: "",
+    disease_name: "",
   });
 
   const [errors, setErrors] = useState<{ [key: string]: boolean }>({});
   const [loading, setLoading] = useState(false);
+
+  const [suggestions, setSuggestions] = useState<DiseaseSuggestion[]>([]);
+  const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  //Buat search disease
+  useEffect(() => {
+    if (searchTerm.trim() === "") {
+      setSuggestions([]);
+      setIsSuggestionsOpen(false);
+      return;
+    }
+
+    const delayDebounceFn = setTimeout(async () => {
+      try {
+        const res = await axios.get<DiseaseSuggestion[]>(
+          `http://localhost:5000/diseases/search?q=${searchTerm}`
+        );
+        setSuggestions(res.data);
+        setIsSuggestionsOpen(true);
+      } catch (error) {
+        console.error("Failed to fetch disease suggestions:", error);
+        setSuggestions([]);
+      }
+    }, 0); 
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchTerm]); 
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
+    
+    if (name === "disease_name") {
+      setSearchTerm(value);
+    }
+    
     setErrors({ ...errors, [name]: false });
+  };
+
+  const handleSuggestionClick = (suggestion: DiseaseSuggestion) => {
+    setFormData({ ...formData, disease_name: suggestion.disease_name });
+    setSearchTerm(suggestion.disease_name); 
+    setIsSuggestionsOpen(false); 
+    setSuggestions([]);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     const token = localStorage.getItem("access_token");
-    if (!token) {
-      toast.error("Sesi Anda telah berakhir. Silakan login kembali.");
-      return;
-    }
-
+    if (!token) { /* ... */ return; }
     const newErrors: { [key: string]: boolean } = {};
     if (!formData.provider.trim()) newErrors.provider = true;
-    if (!formData.diagnosisDesc.trim()) newErrors.diagnosisDesc = true;
+    if (!formData.disease_name.trim()) newErrors.disease_name = true;
     if (!formData.admissionDate) newErrors.admissionDate = true;
     if (!formData.dischargeDate) newErrors.dischargeDate = true;
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      toast.error("Harap isi semua field wajib");
-      return;
-    }
-
+    if (Object.keys(newErrors).length > 0) { /* ... */ return; }
+    const admission = new Date(formData.admissionDate);
+    const discharge = new Date(formData.dischargeDate);
+    if (discharge < admission) { /* ... */ return; }
     setLoading(true);
-
     try {
-      // Hitung duration_stay = antara discharge - admission
-      let duration_stay = "";
-      if (formData.admissionDate && formData.dischargeDate) {
-        const admission = new Date(formData.admissionDate);
-        const discharge = new Date(formData.dischargeDate);
-
-        // Selisih milidetik -> hari
-        const diffTime = discharge.getTime() - admission.getTime();
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-        duration_stay = diffDays.toString();
-      }
-
+      const diffTime = discharge.getTime() - admission.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      const duration_stay = Math.max(1, diffDays).toString();
       const payload = {
         provider: formData.provider.trim(),
-        disease_name: formData.diagnosisDesc.trim(),
+        disease_name: formData.disease_name.trim(),
         admission_date: formData.admissionDate,
         duration_stay: duration_stay,
       };
-
-      const res = await axios.post(
-        "http://localhost:5000/health_record",
-        payload,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      console.log("Sukses simpan:", res.data);
+      await axios.post("http://localhost:5000/health_record", payload, { headers: { Authorization: `Bearer ${token}` } });
       toast.success("Berhasil menyimpan health record!");
-
-      setFormData({
-        provider: "",
-        principleName: "",
-        admissionDate: "",
-        duration_stay: "",
-        dischargeDate: "",
-        diagnosisDesc: "",
-        memberType: "",
-      });
-
-    } catch (err) {
-      console.error("Gagal simpan health record:", err);
-      if (axios.isAxiosError(err) && err.response) {
-        toast.error(`Gagal menyimpan: ${err.response.data.error || "Terjadi kesalahan pada server"}`);
-      } else {
-        toast.error("Gagal menyimpan data. Terjadi kesalahan yang tidak diketahui.");
-      }
-    } finally {
-      setLoading(false);
-    }
+      setFormData({ provider: "", admissionDate: "", dischargeDate: "", disease_name: "" });
+      setSearchTerm(""); // Reset juga search term
+    } catch (err) { /* ... */ } finally { setLoading(false); }
   };
 
   return (
@@ -113,89 +108,42 @@ const ReportPage: React.FC = () => {
 
       <form
         onSubmit={handleSubmit}
-        className="space-y-4 bg-gray-100 p-4 max-w-2xl mx-auto rounded-xl shadow"
+        className="space-y-4 bg-white border p-6 max-w-2xl mx-auto rounded-xl shadow-sm"
       >
-        {/* Provider */}
-        <div>
-          <label className="block font-medium">Provider</label>
+        {/* Disease Name - Auto Suggestion */}
+        <div className="relative"> 
+          <label className="block font-medium">Disease Name</label>
           <Input
             type="text"
-            name="provider"
-            value={formData.provider}
+            name="disease_name"
+            value={formData.disease_name}
             onChange={handleChange}
-            hasError={errors.provider}
-            placeholder="Nama provider"
+            hasError={errors.disease_name}
+            placeholder="Ketik untuk mencari nama penyakit..."
+            autoComplete="off" 
           />
+          {/*Tampilkan daftar saran */}
+          {isSuggestionsOpen && suggestions.length > 0 && (
+            <ul className="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 max-h-40 overflow-y-auto shadow-lg">
+              {suggestions.map((s) => (
+                <li
+                  key={s.id}
+                  className="px-4 py-2 cursor-pointer hover:bg-gray-100"
+                  onClick={() => handleSuggestionClick(s)}
+                >
+                  {s.disease_name}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
-        {/* Principle Name */}
-        <div>
-          <label className="block font-medium">Principle Name</label>
-          <Input
-            type="text"
-            name="principleName"
-            value={formData.principleName}
-            onChange={handleChange}
-            hasError={errors.principleName}
-            placeholder="Nama principle"
-          />
-        </div>
+        {/* field provider admission date discharge date*/}
+        <div><label className="block font-medium">Provider</label><Input type="text" name="provider" value={formData.provider} onChange={handleChange} hasError={errors.provider} placeholder="Nama rumah sakit atau klinik"/></div>
+        <div><label className="block font-medium">Admission Date</label><Input type="date" name="admissionDate" value={formData.admissionDate} onChange={handleChange} hasError={errors.admissionDate}/></div>
+        <div><label className="block font-medium">Discharge Date</label><Input type="date" name="dischargeDate" value={formData.dischargeDate} onChange={handleChange} hasError={errors.dischargeDate}/></div>
 
-        {/* Admission Date */}
-        <div>
-          <label className="block font-medium">Admission Date</label>
-          <Input
-            type="date"
-            name="admissionDate"
-            value={formData.admissionDate}
-            onChange={handleChange}
-            hasError={errors.admissionDate}
-          />
-        </div>
-
-        {/* Discharge Date */}
-        <div>
-          <label className="block font-medium">Discharge Date</label>
-          <Input
-            type="date"
-            name="dischargeDate"
-            value={formData.dischargeDate}
-            onChange={handleChange}
-            hasError={errors.dischargeDate}
-          />
-        </div>
-
-        {/* Diagnosis Desc */}
-        <div>
-          <label className="block font-medium">Diagnosis Description</label>
-          <textarea
-            name="diagnosisDesc"
-            value={formData.diagnosisDesc}
-            onChange={handleChange}
-            placeholder="Deskripsi diagnosis"
-            className={`mt-1 w-full h-20 rounded-md border px-3 py-2 outline-none focus:ring-2 ${
-              errors.diagnosisDesc
-                ? "border-red-500 focus:ring-red-500"
-                : "border-gray-300 focus:ring-green-600"
-            }`}
-          />
-        </div>
-
-        {/* Member Type (opsional) */}
-        <div>
-          <label className="block font-medium">Member Type</label>
-          <Input
-            type="text"
-            name="memberType"
-            value={formData.memberType}
-            onChange={handleChange}
-            hasError={errors.memberType}
-            placeholder="Jenis member"
-          />
-        </div>
-
-        {/* Button */}
-        <div className="flex justify-end">
+        <div className="flex justify-end pt-2">
           <Button type="submit" variant="primary" disabled={loading}>
             {loading ? "Menyimpan..." : "Simpan"}
           </Button>
