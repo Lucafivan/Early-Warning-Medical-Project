@@ -49,13 +49,10 @@ const DashboardPage: React.FC = () => {
       <h1 className="text-2xl sm:text-3xl font-bold max-w-2xl">
         Hello, {displayName}
       </h1>
-
-      <div className="grid gap-6 grid-cols-1 xl:grid-cols-[1fr_1fr_1.4fr]">
         <TopDiseasesChart limit={10} height={280} />
         <TopDiseasesByDivisionChart limit={5} height={320} />
         <WeatherAirQualityCard />
       </div>
-    </div>
   );
 }
 
