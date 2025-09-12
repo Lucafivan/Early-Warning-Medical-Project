@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { Input } from "../components/ui/Input";
 import { Button } from "../components/ui/Button";
+import toast from "react-hot-toast";
 
 const ReportPage: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -26,88 +27,89 @@ const ReportPage: React.FC = () => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  const token = localStorage.getItem("access_token");
-  if (!token) {
-    alert("Sesi Anda telah berakhir. Silakan login kembali.");
-    return;
-  }
-
-  const newErrors: { [key: string]: boolean } = {};
-  if (!formData.provider.trim()) newErrors.provider = true;
-  if (!formData.diagnosisDesc.trim()) newErrors.diagnosisDesc = true;
-  if (!formData.admissionDate) newErrors.admissionDate = true;
-  if (!formData.dischargeDate) newErrors.dischargeDate = true;
-
-  if (Object.keys(newErrors).length > 0) {
-    setErrors(newErrors);
-    alert("Harap isi semua field wajib (Provider, Diagnosis, Admission, Discharge).");
-    return;
-  }
-
-  setLoading(true);
-
-  try {
-    //  Hitung duration_stay = antara discharge - admission
-    let duration_stay = "";
-    if (formData.admissionDate && formData.dischargeDate) {
-      const admission = new Date(formData.admissionDate);
-      const discharge = new Date(formData.dischargeDate);
-
-      // Selisih milidetik -> hari
-      const diffTime = discharge.getTime() - admission.getTime();
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-      duration_stay = diffDays.toString();
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      toast.error("Sesi Anda telah berakhir. Silakan login kembali.");
+      return;
     }
 
-    const payload = {
-      provider: formData.provider.trim(),
-      disease_name: formData.diagnosisDesc.trim(),
-      admission_date: formData.admissionDate,
-      duration_stay: duration_stay, 
-    };
+    const newErrors: { [key: string]: boolean } = {};
+    if (!formData.provider.trim()) newErrors.provider = true;
+    if (!formData.diagnosisDesc.trim()) newErrors.diagnosisDesc = true;
+    if (!formData.admissionDate) newErrors.admissionDate = true;
+    if (!formData.dischargeDate) newErrors.dischargeDate = true;
 
-    const res = await axios.post(
-      "http://localhost:5000/health_record",
-      payload,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      toast.error("Harap isi semua field wajib");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // Hitung duration_stay = antara discharge - admission
+      let duration_stay = "";
+      if (formData.admissionDate && formData.dischargeDate) {
+        const admission = new Date(formData.admissionDate);
+        const discharge = new Date(formData.dischargeDate);
+
+        // Selisih milidetik -> hari
+        const diffTime = discharge.getTime() - admission.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        duration_stay = diffDays.toString();
       }
-    );
 
-    console.log("Sukses simpan:", res.data);
-    alert("Berhasil simpan health record!");
+      const payload = {
+        provider: formData.provider.trim(),
+        disease_name: formData.diagnosisDesc.trim(),
+        admission_date: formData.admissionDate,
+        duration_stay: duration_stay,
+      };
 
-    setFormData({
-      provider: "",
-      principleName: "",
-      admissionDate: "",
-      duration_stay: "",
-      dischargeDate: "",
-      diagnosisDesc: "",
-      memberType: "",
-    });
+      const res = await axios.post(
+        "http://localhost:5000/health_record",
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-  } catch (err) {
-    console.error("Gagal simpan health record:", err);
-    if (axios.isAxiosError(err) && err.response) {
-      alert(`Gagal menyimpan: ${err.response.data.error || "Terjadi kesalahan pada server"}`);
-    } else {
-      alert("Gagal menyimpan data. Terjadi kesalahan yang tidak diketahui.");
+      console.log("Sukses simpan:", res.data);
+      toast.success("Berhasil menyimpan health record!");
+
+      setFormData({
+        provider: "",
+        principleName: "",
+        admissionDate: "",
+        duration_stay: "",
+        dischargeDate: "",
+        diagnosisDesc: "",
+        memberType: "",
+      });
+
+    } catch (err) {
+      console.error("Gagal simpan health record:", err);
+      if (axios.isAxiosError(err) && err.response) {
+        toast.error(`Gagal menyimpan: ${err.response.data.error || "Terjadi kesalahan pada server"}`);
+      } else {
+        toast.error("Gagal menyimpan data. Terjadi kesalahan yang tidak diketahui.");
+      }
+    } finally {
+      setLoading(false);
     }
-  } finally {
-    setLoading(false);
-  }
-};
-
+  };
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl sm:text-3xl font-bold max-w-2xl mx-auto">Report Form</h1>
+      <h1 className="text-2xl sm:text-3xl font-bold max-w-2xl mx-auto">
+        Report Form
+      </h1>
 
       <form
         onSubmit={handleSubmit}
@@ -179,7 +181,7 @@ const ReportPage: React.FC = () => {
           />
         </div>
 
-        {/* Member Type (tidak dipakai BE, hanya tampil di form) */}
+        {/* Member Type (opsional) */}
         <div>
           <label className="block font-medium">Member Type</label>
           <Input
@@ -192,7 +194,7 @@ const ReportPage: React.FC = () => {
           />
         </div>
 
-        {/* Button pakai custom component */}
+        {/* Button */}
         <div className="flex justify-end">
           <Button type="submit" variant="primary" disabled={loading}>
             {loading ? "Menyimpan..." : "Simpan"}
