@@ -4,7 +4,9 @@ from .models import (
     Employee, EmployeeAssignment, HealthRecord,
     Weather, AirQuality
 )
-from flask import jsonify, request, Blueprint
+from flask import jsonify, request, Blueprint, Response
+import csv
+import io
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy import func
 from datetime import datetime
@@ -40,37 +42,6 @@ def get_hazards():
             'hazard_type': haz.hazard_type,
             'description': haz.description
         })
-    return jsonify(output)
-
-@main_bp.route('/diseases', methods=['GET'])
-def get_diseases():
-    diseases = Disease.query.all()
-    output = []
-    for dis in diseases:
-        output.append({
-            'id': dis.id,
-            'disease_name': dis.disease_name
-        })
-    return jsonify(output)
-
-@main_bp.route('/diseases/search', methods=['GET'])
-def search_diseases():
-    search_query = request.args.get('q', '')
-
-    if not search_query:
-        return jsonify([])
-
-    diseases = Disease.query.filter(
-        Disease.disease_name.ilike(f'%{search_query}%')
-    ).limit(10).all()
-
-    output = []
-    for disease in diseases:
-        output.append({
-            'id': disease.id,
-            'disease_name': disease.disease_name
-        })
-        
     return jsonify(output)
 
 @main_bp.route('/users', methods=['GET'])
@@ -116,12 +87,20 @@ def get_employee_assignments():
         })
     return jsonify(output)
 
-@main_bp.route('/health_records', methods=['GET'])
-def get_health_records():
+@main_bp.route('/health_records/download', methods=['GET'])
+def download_health_records_csv():
     health_records = HealthRecord.query.all()
-    output = []
+    # Tentukan kolom yang ingin diekspor
+    fieldnames = [
+        'id', 'employee_id', 'disease_id', 'claims_id', 'admission_date',
+        'provider_name', 'due_total', 'approve', 'member_pay', 'status',
+        'duration_stay', 'daily_cases', 'high_risk'
+    ]
+    output = io.StringIO()
+    writer = csv.DictWriter(output, fieldnames=fieldnames)
+    writer.writeheader()
     for hr in health_records:
-        output.append({
+        writer.writerow({
             'id': hr.id,
             'employee_id': hr.employee_id,
             'disease_id': hr.disease_id,
@@ -136,7 +115,14 @@ def get_health_records():
             'daily_cases': hr.daily_cases,
             'high_risk': hr.high_risk
         })
-    return jsonify(output)
+    output.seek(0)
+    return Response(
+        output.getvalue(),
+        mimetype='text/csv',
+        headers={
+            'Content-Disposition': 'attachment; filename=health_records.csv'
+        }
+    )
 
 @main_bp.route('/weather', methods=['GET'])
 def get_weather():
@@ -348,6 +334,42 @@ def get_early_warning():
             'air_quality_status': air_status(air_qual)
         })
     return jsonify(result)
+
+
+@main_bp.route('/diseases/search', methods=['GET'])
+def search_diseases():
+    search_query = request.args.get('q', '')
+
+    if not search_query:
+        return jsonify([])
+
+    diseases = Disease.query.filter(
+        Disease.disease_name.ilike(f'%{search_query}%')
+    ).limit(10).all()
+
+    output = []
+    for disease in diseases:
+        output.append({
+            'id': disease.id,
+            'disease_name': disease.disease_name
+        })
+        
+    return jsonify(output)
+
+@main_bp.route('/providers/search', methods=['GET'])
+def search_providers():
+    search_query = request.args.get('q', '')
+
+    if not search_query:
+        return jsonify([])
+
+    providers = db.session.query(HealthRecord.provider_name).filter(
+        HealthRecord.provider_name.ilike(f'%{search_query}%')
+    ).distinct().limit(10).all()
+
+    output = [provider[0] for provider in providers if provider[0]]
+
+    return jsonify(output)
 
 @main_bp.route('/health_record', methods=['POST'])
 @jwt_required()
