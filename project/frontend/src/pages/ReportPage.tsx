@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Input } from "../components/ui/Input";
 import { Button } from "../components/ui/Button";
 import toast from "react-hot-toast";
 
-// bUAT SARAN penyakit 
 interface DiseaseSuggestion {
   id: number;
   disease_name: string;
@@ -25,7 +24,10 @@ const ReportPage: React.FC = () => {
   const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
-  //Buat search disease
+  const [suggestionsProvider, setSuggestionsProvider] = useState<string[]>([]);
+  const [isSuggestionsProviderOpen, setIsSuggestionsProviderOpen] = useState(false);
+  const [searchProviderTerm, setSearchProviderTerm] = useState("");
+
   useEffect(() => {
     if (searchTerm.trim() === "") {
       setSuggestions([]);
@@ -49,6 +51,28 @@ const ReportPage: React.FC = () => {
     return () => clearTimeout(delayDebounceFn);
   }, [searchTerm]); 
 
+  useEffect(() => {
+    if (searchProviderTerm.trim() === "") {
+      setSuggestionsProvider([]);
+      setIsSuggestionsProviderOpen(false);
+      return;
+    }
+
+    const delayDebounceFn = setTimeout(async () => {
+      try {
+        const res = await axios.get<string[]>(
+          `http://localhost:5000/providers/search?q=${searchProviderTerm}`
+        );
+        setSuggestionsProvider(res.data);
+        setIsSuggestionsProviderOpen(true);
+      } catch {
+        setSuggestionsProvider([]);
+      }
+    }, 0); 
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchProviderTerm]);
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -57,6 +81,9 @@ const ReportPage: React.FC = () => {
     
     if (name === "disease_name") {
       setSearchTerm(value);
+    }
+    if (name === "provider") {
+      setSearchProviderTerm(value);
     }
     
     setErrors({ ...errors, [name]: false });
@@ -67,6 +94,23 @@ const ReportPage: React.FC = () => {
     setSearchTerm(suggestion.disease_name); 
     setIsSuggestionsOpen(false); 
     setSuggestions([]);
+  };
+
+  const handleDownloadCSV = async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/health_records/download", {
+        responseType: "blob"
+      });
+      const url = window.URL.createObjectURL(new Blob([res.data], { type: 'text/csv' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'health_records.csv');
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode?.removeChild(link);
+    } catch (err) {
+      toast.error("Gagal mengunduh data CSV");
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -102,9 +146,10 @@ const ReportPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl sm:text-3xl font-bold max-w-2xl mx-auto">
-        Report Form
-      </h1>
+
+      <div className="max-w-2xl mx-auto flex flex-col gap-2">
+        <h1 className="text-2xl sm:text-3xl font-bold">Report Form</h1>
+      </div>
 
       <form
         onSubmit={handleSubmit}
@@ -119,13 +164,13 @@ const ReportPage: React.FC = () => {
             value={formData.disease_name}
             onChange={handleChange}
             hasError={errors.disease_name}
-            placeholder="Ketik untuk mencari nama penyakit..."
+            placeholder="Ketik untuk mencari nama penyakit"
             autoComplete="off" 
           />
           {/*Tampilkan daftar saran */}
           {isSuggestionsOpen && suggestions.length > 0 && (
             <ul className="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 max-h-40 overflow-y-auto shadow-lg">
-              {suggestions.map((s) => (
+              {suggestions.slice().sort((a, b) => a.disease_name.localeCompare(b.disease_name)).map((s) => (
                 <li
                   key={s.id}
                   className="px-4 py-2 cursor-pointer hover:bg-gray-100"
@@ -138,10 +183,59 @@ const ReportPage: React.FC = () => {
           )}
         </div>
 
-        {/* field provider admission date discharge date*/}
-        <div><label className="block font-medium">Provider</label><Input type="text" name="provider" value={formData.provider} onChange={handleChange} hasError={errors.provider} placeholder="Nama rumah sakit atau klinik"/></div>
-        <div><label className="block font-medium">Admission Date</label><Input type="date" name="admissionDate" value={formData.admissionDate} onChange={handleChange} hasError={errors.admissionDate}/></div>
-        <div><label className="block font-medium">Discharge Date</label><Input type="date" name="dischargeDate" value={formData.dischargeDate} onChange={handleChange} hasError={errors.dischargeDate}/></div>
+        {/* Provider Name - Auto Suggestion */}
+        <div className="relative">
+          <label className="block font-medium">Provider</label>
+          <Input
+            type="text"
+            name="provider"
+            value={formData.provider}
+            onChange={handleChange}
+            hasError={errors.provider}
+            placeholder="Ketik untuk mencari nama klinik atau rumah sakit"
+            autoComplete="off"
+          />
+          {/* Tampilkan daftar saran provider */}
+          {isSuggestionsProviderOpen && suggestionsProvider.length > 0 && (
+            <ul className="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 max-h-40 overflow-y-auto shadow-lg">
+              {suggestionsProvider.slice().sort().map((prov) => (
+                <li
+                  key={prov}
+                  className="px-4 py-2 cursor-pointer hover:bg-gray-100"
+                  onClick={() => {
+                    setFormData({ ...formData, provider: prov });
+                    setSearchProviderTerm(prov);
+                    setIsSuggestionsProviderOpen(false);
+                    setSuggestionsProvider([]);
+                  }}
+                >
+                  {prov}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <div>
+          <label className="block font-medium">Admission Date</label>
+          <Input
+            type="date"
+            name="admissionDate"
+            value={formData.admissionDate}
+            onChange={handleChange}
+            hasError={errors.admissionDate}
+          />
+        </div>
+        <div>
+          <label className="block font-medium">Discharge Date</label>
+          <Input
+            type="date"
+            name="dischargeDate"
+            value={formData.dischargeDate}
+            onChange={handleChange}
+            hasError={errors.dischargeDate}
+          />
+        </div>
 
         <div className="flex justify-end pt-2">
           <Button type="submit" variant="primary" disabled={loading}>
@@ -149,6 +243,11 @@ const ReportPage: React.FC = () => {
           </Button>
         </div>
       </form>
+      <div className="max-w-2xl mx-auto flex justify-end mt-4">
+        <Button type="button" variant="secondary" onClick={handleDownloadCSV}>
+          Download CSV
+        </Button>
+      </div>
     </div>
   );
 };

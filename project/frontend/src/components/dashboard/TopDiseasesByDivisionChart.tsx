@@ -168,7 +168,7 @@ const TopDiseasesByDivisionChart: React.FC<Props> = ({ limit = 5, height = 320 }
                 onChange={(e) => setSelected(e.target.value)}
             >
                 {divisions.length === 0 && <option value="">(No divisions)</option>}
-                {divisions.map((d) => (
+                {divisions.slice().sort().map((d) => (
                 <option key={d} value={d}>{d}</option>
                 ))}
             </select>
